@@ -101,19 +101,20 @@
   const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
   const touchDir = { up: false, down: false, left: false, right: false };
 
-  let moveCooldown = 0;
-  const MOVE_COOLDOWN_MAX = 10;
+  let moveCooldown =  continue0;
+  const MOVE_COOLDOWN_MAX =;
+ 10;
 
-  const canvas = document.getElementById('gameCanvas');
-  const ctx = canvas.getContext('2d');
+  const canvas = document.getElementById       ('gameCanvas');
+  const ctx = canvas if.getContext('2d');
   const scoreSpan = document.getElementById('scoreDisplay');
 
   // ---- 地图生成 ----
   function generateRandomMap() {
-    const newMap = [];
+    const newMap = ( [];
     for (let y = 0; y < GRID_SIZE; y++) {
       newMap[y] = [];
-      for (let x = 0; x < GRID_SIZE; x++) {
+map      for (let x = 0; x < GRID_SIZE; x++) {
         if (x === 0 || x === GRID_SIZE - 1 || y === 0 || y === GRID_SIZE - 1) {
           newMap[y][x] = TILE.WALL;
         } else {
@@ -140,7 +141,7 @@
         }
       }
       if (!overlaps) {
-        rooms.push({ x, y, w, h });
+        rooms.push({ x, y, w[, h });
         for (let dy = 0; dy < h; dy++) {
           for (let dx = 0; dx < w; dx++) {
             newMap[y + dy][x + dx] = TILE.WALL;
@@ -196,6 +197,42 @@
     return newMap;
   }
 
+  // ---- 连通性检测 ----
+  function getReachableMap(map, startX, startY) {
+    const reachable = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(false));
+    if (!map[startY] || map[startY][startX] === TILE.WALL) return reachable;
+
+    const queue = [{ x: startX, y: startY }];
+    reachable[startY][startX] = true;
+    const dirs = [
+      { dx: 0, dy: -1 }, { dx: 0, dy: 1 },
+      { dx: -1, dy: 0 }, { dx: 1, dy: 0 }
+    ];
+    let head = 0;
+    while (head < queue.length) {
+      const cur = queue[head++];
+      for (let d of dirs) {
+        const nx = cur.x + d.dx;
+        const ny = cur.y + d.dy;
+        if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) continue;
+        if (reachable[ny][nx])ny][nx] === TILE.WALL) continue;
+        reachable[ny][nx] = true;
+        queue.push({ x: nx, y: ny });
+      }
+    }
+    return reachable;
+  }
+
+  function allGemsReachable(map) {
+    const reachable = getReachableMap(map, 1, 1);
+    for (let y = 0; y < GRID_SIZE; y++) {
+      for (let x = 0; x < GRID_SIZE; x++) {
+        if (map[y][x] === TILE.GEM && !reachable[y][x]) return false;
+      }
+    }
+    return true;
+  }
+
   // ---- 找空地 ----
   function findOpenTile(map, startX, startY) {
     if (map[startY] && map[startY][startX] === TILE.GRASS) {
@@ -217,7 +254,12 @@
   }
 
   function resetGame() {
-    map = generateRandomMap();
+    // 反复生成，直到所有宝石都可达（最多尝试 30 次）
+    let attempts = 0;
+    do {
+      map = generateRandomMap();
+      attempts++;
+    } while (!allGemsReachable(map) && attempts < 30);
 
     const playerPos = findOpenTile(map, 1, 1);
     player.x = playerPos.x;
@@ -240,7 +282,7 @@
       const mx = 2 + Math.floor(Math.random() * (GRID_SIZE - 4));
       const my = 2 + Math.floor(Math.random() * (GRID_SIZE - 4));
       const dist = Math.abs(mx - player.x) + Math.abs(my - player.y);
-      if (map[my][mx] === TILE.GRASS && dist > 5) {
+      if (map[my][mx] === TILE.GRASS && dist > 7) {
         let tooClose = false;
         for (let m of monsters) {
           if (Math.abs(m.x - mx) + Math.abs(m.y - my) < 3) {
@@ -379,7 +421,7 @@
   }
 
   let monsterMoveTimer = 0;
-  const MONSTER_MOVE_INTERVAL = 14;
+  const MONSTER_MOVE_INTERVAL = 26;   // 数字越大怪物越慢（原来14）
 
   function updateMonsters() {
     if (gameState !== 'playing') return;
@@ -392,15 +434,26 @@
       m.repathTimer++;
       const dist = Math.abs(m.x - player.x) + Math.abs(m.y - player.y);
 
-      if (m.repathTimer > 8 || !m.path) {
+      // 只有距离较近（<=6格）时才会追踪玩家；否则随机游走
+      const canChase = dist <= 6;
+
+      // 重寻路间隔拉长：约每 30 帧才重新计算一次，且必须能追踪
+      if (canChase && (m.repathTimer > 30 || !m.path)) {
         m.repathTimer = 0;
-        const newPath = bfsPath(m.x, m.y, player.x, player.y);
-        if (newPath && newPath.length > 0) {
-          m.path = newPath;
-          m.pathIndex = 0;
-        } else {
-          m.path = null;
+        // 只有 60% 概率真的重新算路径
+        if (Math.random() < 0.6) {
+          const newPath = bfsPath(m.x, m.y, player.x, player.y);
+          if (newPath && newPath.length > 0) {
+            m.path = newPath;
+            m.pathIndex = 0;
+          } else {
+            m.path = null;
+          }
         }
+      } else if (!canChase) {
+        // 玩家太远，放弃追踪，随机游走
+        m.path = null;
+        m.repathTimer = 0;
       }
 
       let moved = false;
@@ -418,13 +471,34 @@
       }
 
       if (!moved) {
-        const dx = Math.sign(player.x - m.x);
-        const dy = Math.sign(player.y - m.y);
+        // 没有路径时：只有距离玩家较近（<=4格）才直线靠拢，否则随机走
+        const distToPlayer = Math.abs(m.x - player.x) + Math.abs(m.y - player.y);
 
-        if (dx !== 0 && isWalkable(m.x + dx, m.y)) {
-          m.x += dx;
-        } else if (dy !== 0 && isWalkable(m.x, m.y + dy)) {
-          m.y += dy;
+        if (distToPlayer <= 4) {
+          const dx = Math.sign(player.x - m.x);
+          const dy = Math.sign(player.y - m.y);
+          if (dx !== 0 && isWalkable(m.x + dx, m.y)) {
+            m.x += dx;
+          } else if (dy !== 0 && isWalkable(m.x, m.y + dy)) {
+            m.y += dy;
+          }
+        } else {
+          // 随机选一个可行方向走
+          const dirs = [
+            { dx: 0, dy: -1 }, { dx: 0, dy: 1 },
+            { dx: -1, dy: 0 }, { dx: 1, dy: 0 }
+          ];
+          for (let i = dirs.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [dirs[i], dirs[j]] = [dirs[j], dirs[i]];
+          }
+          for (let d of dirs) {
+            if (isWalkable(m.x + d.dx, m.y + d.dy)) {
+              m.x += d.dx;
+              m.y += d.dy;
+              break;
+            }
+          }
         }
       }
 
