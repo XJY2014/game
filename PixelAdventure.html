@@ -1,175 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>像素冒险 · 宝石与巡逻怪</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #1a2c1e;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: 'Courier New', Courier, monospace;
-      padding: 12px;
-    }
-    .game-wrapper {
-      background: #2d3e2b;
-      padding: 20px 20px 24px;
-      border-radius: 32px;
-      box-shadow: 0 12px 0 #0f1a0e, 0 16px 24px rgba(0, 0, 0, 0.6);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .top-bar {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-      gap: 12px;
-    }
-    .back-btn {
-      background: #3a4a34;
-      color: #d4e8b0;
-      border: none;
-      border-radius: 16px;
-      padding: 10px 20px;
-      font-family: inherit;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 6px 0 #0f1a0e;
-      transition: all 0.05s ease;
-      letter-spacing: 1px;
-      text-decoration: none;
-      display: inline-block;
-    }
-    .back-btn:active {
-      transform: translateY(5px);
-      box-shadow: 0 1px 0 #0f1a0e;
-    }
-    .back-btn:hover {
-      background: #4d6343;
-    }
-    canvas {
-      display: block;
-      width: 100%;
-      height: auto;
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
-      border-radius: 16px;
-      background: #3a5a3a;
-      box-shadow: inset 0 0 0 4px #1e2e1c, 0 8px 0 #0f1a0e;
-      cursor: crosshair;
-      max-width: 600px;
-      touch-action: none;
-    }
-    .hud {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 12px 0 8px;
-      color: #e0f0c0;
-      text-shadow: 2px 2px 0 #0f1a0e;
-      font-size: 1.5rem;
-      font-weight: bold;
-      letter-spacing: 2px;
-      padding: 0 8px;
-    }
-    .score {
-      background: #1e2e1c;
-      padding: 6px 20px;
-      border-radius: 30px;
-      box-shadow: inset 0 -4px 0 #0b130a, 0 4px 0 #0b130a;
-      font-size: 1.3rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .score span {
-      color: #ffd966;
-      font-size: 1.8rem;
-      line-height: 1;
-    }
-    .controls-hint {
-      color: #8faa7a;
-      font-size: 1rem;
-      font-weight: bold;
-      display: flex;
-      gap: 12px;
-      background: #1e2e1c;
-      padding: 6px 16px;
-      border-radius: 30px;
-      box-shadow: inset 0 -3px 0 #0b130a;
-    }
-    .dpad {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 16px;
-      gap: 8px;
-      width: 100%;
-    }
-    .dpad-row {
-      display: flex;
-      justify-content: center;
-      gap: 24px;
-    }
-    .dpad-btn {
-      background: #4a6741;
-      width: 80px;
-      height: 80px;
-      border-radius: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 3.4rem;
-      font-weight: bold;
-      color: #d4e8b0;
-      text-shadow: 4px 4px 0 #1f2e1a;
-      box-shadow: 0 10px 0 #1f2e1a, 0 6px 12px rgba(0, 0, 0, 0.5);
-      transition: all 0.05s ease;
-      touch-action: manipulation;
-      cursor: pointer;
-      user-select: none;
-      border: none;
-      line-height: 1;
-      padding: 0;
-    }
-    .dpad-btn:active {
-      transform: translateY(6px);
-      box-shadow: 0 4px 0 #1f2e1a, 0 6px 12px rgba(0, 0, 0, 0.5);
-      background: #5d7e52;
-    }
-    @media (max-width: 600px) {
-      .dpad-btn {
-        width: 70px;
-        height: 70px;
-        font-size: 2.8rem;
-        border-radius: 20px;
-      }
-      .hud {
-        font-size: 1.2rem;
-      }
-      .score span {
-        font-size: 1.5rem;
-      }
-      .back-btn {
-        font-size: 0.9rem;
-        padding: 8px 14px;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>像素冒险 · 宝石与巡逻怪</title>
+<style>
+  * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; min-height: 100vh; background: #1a2c1e;
+    display: flex; justify-content: center; align-items: center;
+    font-family: 'Courier New', Courier, monospace; padding: 12px;
+  }
+  .game-wrapper {
+    background: #2d3e2b; padding: 20px 20px 24px; border-radius: 32px;
+    box-shadow: 0 12px 0 #0f1a0e, 0 16px 24px rgba(0,0,0,0.6);
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 12px; }
+  .back-btn {
+    background: #3a4a34; color: #d4e8b0; border: none; border-radius: 16px;
+    padding: 10px 20px; font-family: inherit; font-size: 1rem; font-weight: bold;
+    cursor: pointer; box-shadow: 0 6px 0 #0f1a0e; transition: all 0.05s ease;
+    letter-spacing: 1px; text-decoration: none; display: inline-block;
+  }
+  .back-btn:active { transform: translateY(5px); box-shadow: 0 1px 0 #0f1a0e; }
+  .back-btn:hover { background: #4d6343; }
+  canvas {
+    display: block; width: 100%; height: auto;
+    image-rendering: pixelated; image-rendering: crisp-edges;
+    border-radius: 16px; background: #3a5a3a;
+    box-shadow: inset 0 0 0 4px #1e2e1c, 0 8px 0 #0f1a0e;
+    cursor: crosshair; max-width: 600px; touch-action: none;
+  }
+  .hud { width: 100%; display: flex; justify-content: space-between; align-items: center; margin: 12px 0 8px; color: #e0f0c0; text-shadow: 2px 2px 0 #0f1a0e; font-size: 1.5rem; font-weight: bold; letter-spacing: 2px; padding: 0 8px; }
+  .score { background: #1e2e1c; padding: 6px 20px; border-radius: 30px; box-shadow: inset 0 -4px 0 #0b130a, 0 4px 0 #0b130a; font-size: 1.3rem; display: flex; align-items: center; gap: 8px; }
+  .score span { color: #ffd966; font-size: 1.8rem; line-height: 1; }
+  .controls-hint { color: #8faa7a; font-size: 1rem; font-weight: bold; display: flex; gap: 12px; background: #1e2e1c; padding: 6px 16px; border-radius: 30px; box-shadow: inset 0 -3px 0 #0b130a; }
+  .dpad { display: flex; flex-direction: column; align-items: center; margin-top: 16px; gap: 8px; width: 100%; }
+  .dpad-row { display: flex; justify-content: center; gap: 24px; }
+  .dpad-btn {
+    background: #4a6741; width: 80px; height: 80px; border-radius: 24px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3.4rem; font-weight: bold; color: #d4e8b0;
+    text-shadow: 4px 4px 0 #1f2e1a;
+    box-shadow: 0 10px 0 #1f2e1a, 0 6px 12px rgba(0,0,0,0.5);
+    transition: all 0.05s ease; touch-action: manipulation;
+    cursor: pointer; user-select: none; border: none; line-height: 1; padding: 0;
+  }
+  .dpad-btn:active { transform: translateY(6px); box-shadow: 0 4px 0 #1f2e1a, 0 6px 12px rgba(0,0,0,0.5); background: #5d7e52; }
+  @media (max-width: 600px) {
+    .dpad-btn { width: 70px; height: 70px; font-size: 2.8rem; border-radius: 20px; }
+    .hud { font-size: 1.2rem; }
+    .score span { font-size: 1.5rem; }
+    .back-btn { font-size: 0.9rem; padding: 8px 14px; }
+  }
+</style>
 </head>
 <body>
 <div class="game-wrapper">
@@ -197,581 +82,571 @@
 </div>
 
 <script>
-  (function() {
-    const CANVAS_SIZE = 480;
-    const TILE_SIZE = 32;
-    const GRID_SIZE = CANVAS_SIZE / TILE_SIZE;
+(function() {
+  const CANVAS_SIZE = 480;
+  const TILE_SIZE = 32;
+  const GRID_SIZE = CANVAS_SIZE / TILE_SIZE;
 
-    const TILE = {
-      GRASS: 0,
-      WALL: 1,
-      GEM: 2,
-    };
+  const TILE = { GRASS: 0, WALL: 1, GEM: 2 };
+  const PLAYER_START = { x: 1, y: 1 };
 
-    const PLAYER_START = { x: 1, y: 1 };
+  let gameState = 'start';
+  let score = 0;
+  let map = [];
+  let player = { x: PLAYER_START.x, y: PLAYER_START.y };
+  let monsters = [];
+  let gemsRemaining = 0;
+  let totalGems = 0;
 
-    let gameState = 'start';
-    let score = 0;
-    let map = [];
-    let player = { x: PLAYER_START.x, y: PLAYER_START.y };
-    let monsters = [];
-    let gemsRemaining = 0;
-    let totalGems = 0;
+  const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+  const touchDir = { up: false, down: false, left: false, right: false };
 
-    const keys = {
-      ArrowUp: false,
-      ArrowDown: false,
-      ArrowLeft: false,
-      ArrowRight: false
-    };
+  let moveCooldown = 0;
+  const MOVE_COOLDOWN_MAX = 10;
 
-    const touchDir = {
-      up: false,
-      down: false,
-      left: false,
-      right: false
-    };
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const scoreSpan = document.getElementById('scoreDisplay');
 
-    let moveCooldown = 0;
-    const MOVE_COOLDOWN_MAX = 10;
+  // ---- 地图生成 ----
+  function generateRandomMap() {
+    const newMap = [];
+    for (let y = 0; y < GRID_SIZE; y++) {
+      newMap[y] = [];
+      for (let x = 0; x < GRID_SIZE; x++) {
+        if (x === 0 || x === GRID_SIZE - 1 || y === 0 || y === GRID_SIZE - 1) {
+          newMap[y][x] = TILE.WALL;
+        } else {
+          newMap[y][x] = TILE.GRASS;
+        }
+      }
+    }
 
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const scoreSpan = document.getElementById('scoreDisplay');
+    const roomCount = 6 + Math.floor(Math.random() * 4);
+    const rooms = [];
 
-    // ---- 地图生成 (修复了 findOpenTile 的语法错误) ----
-    function generateRandomMap() {
-      const newMap = [];
-      for (let y = 0; y < GRID_SIZE; y++) {
-        newMap[y] = [];
-        for (let x = 0; x < GRID_SIZE; x++) {
-          if (x === 0 || x === GRID_SIZE - 1 || y === 0 || y === GRID_SIZE - 1) {
-            newMap[y][x] = TILE.WALL;
-          } else {
-            newMap[y][x] = TILE.GRASS;
+    for (let i = 0; i < roomCount; i++) {
+      const w = 2 + Math.floor(Math.random() * 3);
+      const h = 2 + Math.floor(Math.random() * 3);
+      const x = 1 + Math.floor(Math.random() * (GRID_SIZE - w - 2));
+      const y = 1 + Math.floor(Math.random() * (GRID_SIZE - h - 2));
+
+      let overlaps = false;
+      for (let r of rooms) {
+        if (x < r.x + r.w + 1 && x + w + 1 > r.x &&
+            y < r.y + r.h + 1 && y + h + 1 > r.y) {
+          overlaps = true;
+          break;
+        }
+      }
+      if (!overlaps) {
+        rooms.push({ x, y, w, h });
+        for (let dy = 0; dy < h; dy++) {
+          for (let dx = 0; dx < w; dx++) {
+            newMap[y + dy][x + dx] = TILE.WALL;
           }
         }
       }
+    }
 
-      const roomCount = 6 + Math.floor(Math.random() * 4);
-      const rooms = [];
+    for (let i = 0; i < 12; i++) {
+      let wx, wy;
+      let attempts = 0;
+      do {
+        wx = 1 + Math.floor(Math.random() * (GRID_SIZE - 2));
+        wy = 1 + Math.floor(Math.random() * (GRID_SIZE - 2));
+        attempts++;
+      } while (newMap[wy][wx] !== TILE.GRASS && attempts < 50);
 
-      for (let i = 0; i < roomCount; i++) {
-        const w = 2 + Math.floor(Math.random() * 3);
-        const h = 2 + Math.floor(Math.random() * 3);
-        const x = 1 + Math.floor(Math.random() * (GRID_SIZE - w - 2));
-        const y = 1 + Math.floor(Math.random() * (GRID_SIZE - h - 2));
+      if (newMap[wy][wx] === TILE.GRASS) {
+        const len = 1 + Math.floor(Math.random() * 3);
+        if (Math.random() < 0.5) {
+          for (let d = 0; d < len; d++) {
+            if (wx + d < GRID_SIZE - 1 && newMap[wy][wx + d] === TILE.GRASS) {
+              newMap[wy][wx + d] = TILE.WALL;
+            }
+          }
+        } else {
+          for (let d = 0; d < len; d++) {
+            if (wy + d < GRID_SIZE - 1 && newMap[wy + d][wx] === TILE.GRASS) {
+              newMap[wy + d][wx] = TILE.WALL;
+            }
+          }
+        }
+      }
+    }
 
-        let overlaps = false;
-        for (let r of rooms) {
-          if (x < r.x + r.w + 1 && x + w + 1 > r.x &&
-              y < r.y + r.h + 1 && y + h + 1 > r.y) {
-            overlaps = true;
+    newMap[1][1] = TILE.GRASS;
+    newMap[1][2] = TILE.GRASS;
+    newMap[2][1] = TILE.GRASS;
+
+    const gemCount = 6 + Math.floor(Math.random() * 4);
+    let placed = 0;
+    let safety = 0;
+    while (placed < gemCount && safety < 500) {
+      safety++;
+      const gx = 1 + Math.floor(Math.random() * (GRID_SIZE - 2));
+      const gy = 1 + Math.floor(Math.random() * (GRID_SIZE - 2));
+      if (newMap[gy][gx] === TILE.GRASS && !(gx === 1 && gy === 1)) {
+        newMap[gy][gx] = TILE.GEM;
+        placed++;
+      }
+    }
+
+    return newMap;
+  }
+
+  // ---- 找空地 ----
+  function findOpenTile(map, startX, startY) {
+    if (map[startY] && map[startY][startX] === TILE.GRASS) {
+      return { x: startX, y: startY };
+    }
+    for (let radius = 1; radius < GRID_SIZE; radius++) {
+      for (let dy = -radius; dy <= radius; dy++) {
+        for (let dx = -radius; dx <= radius; dx++) {
+          const nx = startX + dx;
+          const ny = startY + dy;
+          if (nx > 0 && nx < GRID_SIZE - 1 && ny > 0 && ny < GRID_SIZE - 1 &&
+              map[ny] && map[ny][nx] === TILE.GRASS) {
+            return { x: nx, y: ny };
+          }
+        }
+      }
+    }
+    return { x: 1, y: 1 };
+  }
+
+  function resetGame() {
+    map = generateRandomMap();
+
+    const playerPos = findOpenTile(map, 1, 1);
+    player.x = playerPos.x;
+    player.y = playerPos.y;
+
+    totalGems = 0;
+    for (let y = 0; y < GRID_SIZE; y++) {
+      for (let x = 0; x < GRID_SIZE; x++) {
+        if (map[y][x] === TILE.GEM) totalGems++;
+      }
+    }
+    gemsRemaining = totalGems;
+
+    monsters = [];
+    const monsterCount = 2 + Math.floor(Math.random() * 3);
+    let placedMonsters = 0;
+    let safety = 0;
+    while (placedMonsters < monsterCount && safety < 300) {
+      safety++;
+      const mx = 2 + Math.floor(Math.random() * (GRID_SIZE - 4));
+      const my = 2 + Math.floor(Math.random() * (GRID_SIZE - 4));
+      const dist = Math.abs(mx - player.x) + Math.abs(my - player.y);
+      if (map[my][mx] === TILE.GRASS && dist > 5) {
+        let tooClose = false;
+        for (let m of monsters) {
+          if (Math.abs(m.x - mx) + Math.abs(m.y - my) < 3) {
+            tooClose = true;
             break;
           }
         }
-        if (!overlaps) {
-          rooms.push({ x, y, w, h });
-          for (let dy = 0; dy < h; dy++) {
-            for (let dx = 0; dx < w; dx++) {
-              newMap[y + dy][x + dx] = TILE.WALL;
-            }
-          }
+        if (!tooClose) {
+          monsters.push({
+            x: mx,
+            y: my,
+            dir: Math.random() < 0.5 ? -1 : 1,
+            moveTimer: 0,
+            path: null,
+            pathIndex: 0,
+            repathTimer: 0
+          });
+          placedMonsters++;
         }
       }
-
-      for (let i = 0; i < 12; i++) {
-        let wx, wy;
-        let attempts = 0;
-        do {
-          wx = 1 + Math.floor(Math.random() * (GRID_SIZE - 2));
-          wy = 1 + Math.floor(Math.random() * (GRID_SIZE - 2));
-          attempts++;
-        } while (newMap[wy][wx] !== TILE.GRASS && attempts < 50);
-
-        if (newMap[wy][wx] === TILE.GRASS) {
-          const len = 1 + Math.floor(Math.random() * 3);
-          if (Math.random() < 0.5) {
-            for (let d = 0; d < len; d++) {
-              if (wx + d < GRID_SIZE - 1 && newMap[wy][wx + d] === TILE.GRASS) {
-                newMap[wy][wx + d] = TILE.WALL;
-              }
-            }
-          } else {
-            for (let d = 0; d < len; d++) {
-              if (wy + d < GRID_SIZE - 1 && newMap[wy + d][wx] === TILE.GRASS) {
-                newMap[wy + d][wx] = TILE.WALL;
-              }
-            }
-          }
-        }
-      }
-
-      newMap[1][1] = TILE.GRASS;
-      newMap[1][2] = TILE.GRASS;
-      newMap[2][1] = TILE.GRASS;
-
-      const gemCount = 6 + Math.floor(Math.random() * 4);
-      let placed = 0;
-      let safety = 0;
-      while (placed < gemCount && safety < 500) {
-        safety++;
-        const gx = 1 + Math.floor(Math.random() * (GRID_SIZE - 2));
-        const gy = 1 + Math.floor(Math.random() * (GRID_SIZE - 2));
-        if (newMap[gy][gx ] === TILE.GRASS && !(0gx === 1 && gy === 1)). {
-5          newMap[gy][gx ?] = TILE.GEM;
-          placed++;
-        1 }
-      }
-
-      return newMap;
     }
 
-    // : 修复: 补全 findOpenTile  -函数逻辑
-    function findOpenTile(map, start1X, startY) {
-      if (map[start,
-Y] && map[startY][startX             ] === TILE.GRASS) {
-        return { x move: startX, y: startY };
-     Timer }
-      for (let radius = 1;: radius < GRID_SIZE; radius++) {
-        for  (let dy = -radius; dy <= radius;0 dy++) {
-          for (let dx = -,
-radius; dx <= radius; dx++) {
-            const nx =              startX + dx;
-            const ny = path startY + dy;
-            if (nx >: 0 && nx < GRID_SIZE -  null1 && ny > 0 && ny < GRID_SIZE - 1 &&
-                map[ny] && map[ny][nx] === TILE.GRASS) {
-              return { x: nx, y: ny };
-            }
-          }
-        }
-      }
-      return { x: 1, y: 1 };
+    if (monsters.length === 0) {
+      const fallback = findOpenTile(map, GRID_SIZE - 2, GRID_SIZE - 2);
+      monsters.push({
+        x: fallback.x,
+        y: fallback.y,
+        dir: 1,
+        moveTimer: 0,
+        path: null,
+        pathIndex: 0,
+        repathTimer: 0
+      });
     }
 
-    function resetGame() {
-      map = generateRandomMap();
+    score = 0;
+    updateScoreUI();
+    moveCooldown = 0;
+    gameState = 'start';
+  }
 
-      const playerPos = findOpenTile(map, 1, 1);
-      player.x = playerPos.x;
-      player.y = playerPos.y;
+  function updateScoreUI() {
+    scoreSpan.textContent = score;
+  }
 
-      totalGems = 0;
-      for (let y = 0; y < GRID_SIZE; y++) {
-        for (let x = 0; x < GRID_SIZE; x++) {
-          if (map[y][x] === TILE.GEM) totalGems++;
-        }
-      }
-      gemsRemaining = totalGems;
+  function isWalkable(x, y) {
+    if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return false;
+    return map[y][x] !== TILE.WALL;
+  }
 
-      monsters = [];
-      const monsterCount = 2 + Math.floor(Math.random() * 3);
-      let placedMonsters = 0;
-      let safety = 0;
-      while (placedMonsters < monsterCount && safety < 300) {
-        safety++;
-        const mx = 2 + Math.floor(Math.random() * (GRID_SIZE - 4));
-        const my = 2 + Math.floor(Math.random() * (GRID_SIZE - 4));
-        const dist = Math.abs(mx - player.x) + Math.abs(my - player.y);
-        if (map[my][mx] === TILE.GRASS && dist > 5) {
-          let tooClose = false;
-          for (let m of monsters) {
-            if (Math.abs(m.x - mx) + Math.abs(m.y - my) < 3) {
-              tooClose = true;
-              break;
-            }
-          }
-          if (!tooClose) {
-            monsters.push({
-              x: mx,
-              y: my,
-              dir: Math.random() <,
-              pathIndex: 0,
-              repathTimer: 0
-            });
-            placedMonsters++;
-          }
-        }
-      }
+  function movePlayer(dx, dy) {
+    if (gameState !== 'playing') return;
+    if (moveCooldown > 0) return;
 
-      if (monsters.length === 0) {
-        const fallback = findOpenTile(map, GRID_SIZE - 2, GRID_SIZE - 2);
-        monsters.push({
-          x: fallback.x,
-          y: fallback.y,
-          dir: 1,
-          moveTimer: 0,
-          path: null,
-          pathIndex: 0,
-          repathTimer: 0
-        });
-      }
+    const newX = player.x + dx;
+    const newY = player.y + dy;
 
-      score = 0;
+    if (!isWalkable(newX, newY)) return;
+
+    player.x = newX;
+    player.y = newY;
+
+    if (map[newY][newX] === TILE.GEM) {
+      map[newY][newX] = TILE.GRASS;
+      score += 10;
+      gemsRemaining--;
       updateScoreUI();
-      moveCooldown = 0;
-      gameState = 'start';
-    }
 
-    function updateScoreUI() {
-      scoreSpan.textContent = score;
-    }
-
-    function isWalkable(x, y) {
-      if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return false;
-      return map[y][x] !== TILE.WALL;
-    }
-
-    function movePlayer(dx, dy) {
-      if (gameState !== 'playing') return;
-      if (moveCooldown > 0) return;
-
-      const newX = player.x + dx;
-      const newY = player.y + dy;
-
-      if (!isWalkable(newX, newY)) return;
-
-      player.x = newX;
-      player.y = newY;
-
-      if (map[newY][newX] === TILE.GEM) {
-        map[newY][newX] = TILE.GRASS;
-        score += 10;
-        gemsRemaining--;
-        updateScoreUI();
-
-        if (gemsRemaining === 0) {
-          gameState = 'win';
-        }
+      if (gemsRemaining === 0) {
+        gameState = 'win';
       }
-
-      checkMonsterCollision();
-      moveCooldown = MOVE_COOLDOWN_MAX;
     }
 
-    function checkMonsterCollision() {
-      for (let m of monsters) {
-        if (m.x === player.x && m.y === player.y) {
-          resetGame();
+    checkMonsterCollision();
+    moveCooldown = MOVE_COOLDOWN_MAX;
+  }
+
+  function checkMonsterCollision() {
+    for (let m of monsters) {
+      if (m.x === player.x && m.y === player.y) {
+        resetGame();
+        break;
+      }
+    }
+  }
+
+  function bfsPath(startX, startY, targetX, targetY) {
+    if (startX === targetX && startY === targetY) return [];
+    const queue = [{ x: startX, y: startY }];
+    const visited = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(false));
+    const parent = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(null));
+    visited[startY][startX] = true;
+
+    const dirs = [
+      { dx: 0, dy: -1 },
+      { dx: 0, dy: 1 },
+      { dx: -1, dy: 0 },
+      { dx: 1, dy: 0 }
+    ];
+
+    let found = false;
+    let head = 0;
+
+    while (head < queue.length && !found) {
+      const cur = queue[head++];
+      for (let d of dirs) {
+        const nx = cur.x + d.dx;
+        const ny = cur.y + d.dy;
+        if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) continue;
+        if (visited[ny][nx]) continue;
+        if (map[ny][nx] === TILE.WALL) continue;
+
+        visited[ny][nx] = true;
+        parent[ny][nx] = { x: cur.x, y: cur.y };
+        queue.push({ x: nx, y: ny });
+
+        if (nx === targetX && ny === targetY) {
+          found = true;
           break;
         }
       }
     }
 
-    function bfsPath(startX, startY, targetX, targetY) {
-      if (startX === targetX && startY === targetY) return [];
-      const queue = [{ x: startX, y: startY }];
-      const visited = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(false));
-      const parent = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(null));
-      visited[startY][startX] = true;
+    if (!found) return null;
 
-      const dirs = [
-        { dx: 0, dy: -1 },
-        { dx: 0, dy: 1 },
-        { dx: -1, dy: 0 },
-        { dx: 1, dy: 0 }
-      ];
-
-      let found = false;
-      let head = 0;
-
-      while (head < queue.length && !found) {
-        const cur = queue[head++];
-        for (let d of dirs) {
-          const nx = cur.x + d.dx;
-          const ny = cur.y + d.dy;
-          if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) continue;
-          if (visited[ny][nx]) continue;
-          if (map[ny][nx] === TILE.WALL) continue;
-
-          visited[ny][nx] = true;
-          parent[ny][nx] = { x: cur.x, y: cur.y };
-          queue.push({ x: nx, y: ny });
-
-          if (nx === targetX && ny === targetY) {
-            found = true;
-            break;
-          }
-        }
-      }
-
-      if (!found) return null;
-
-      const path = [];
-      let cur = { x: targetX, y: targetY };
-      while (cur) {
-        path.unshift(cur);
-        const p = parent[cur.y][cur.x];
-        if (!p) break;
-        cur = p;
-      }
-
-      return path.length > 1 ? path.slice(1) : null;
+    const path = [];
+    let cur = { x: targetX, y: targetY };
+    while (cur) {
+      path.unshift(cur);
+      const p = parent[cur.y][cur.x];
+      if (!p) break;
+      cur = p;
     }
 
-    let monsterMoveTimer = 0;
-    const MONSTER_MOVE_INTERVAL = 14;
+    return path.length > 1 ? path.slice(1) : null;
+  }
 
-    function updateMonsters() {
-      if (gameState !== 'playing') return;
+  let monsterMoveTimer = 0;
+  const MONSTER_MOVE_INTERVAL = 14;
 
-      monsterMoveTimer++;
-      if (monsterMoveTimer < MONSTER_MOVE_INTERVAL) return;
-      monsterMoveTimer = 0;
+  function updateMonsters() {
+    if (gameState !== 'playing') return;
 
-      for (let m of monsters) {
-        m.repathTimer++;
-        const dist = Math.abs(m.x - player.x) + Math.abs(m.y - player.y);
+    monsterMoveTimer++;
+    if (monsterMoveTimer < MONSTER_MOVE_INTERVAL) return;
+    monsterMoveTimer = 0;
 
-        if (m.repathTimer > 8 || !m.path) {
-          m.repathTimer = 0;
-          const newPath = bfsPath(m.x, m.y, player.x, player.y);
-          if (newPath && newPath.length > 0) {
-            m.path = newPath;
-            m.pathIndex = 0;
-          } else {
-            m.path = null;
-          }
-        }
+    for (let m of monsters) {
+      m.repathTimer++;
+      const dist = Math.abs(m.x - player.x) + Math.abs(m.y - player.y);
 
-        let moved = false;
-
-        if (m.path && m.pathIndex < m.path.length) {
-          const next = m.path[m.pathIndex];
-          if (isWalkable(next.x, next.y)) {
-            m.x = next.x;
-            m.y = next.y;
-            m.pathIndex++;
-            moved = true;
-          } else {
-            m.path = null;
-          }
-        }
-
-        if (!moved) {
-          const dx = Math.sign(player.x - m.x);
-          const dy = Math.sign(player.y - m.y {
-);
-
-          if (dx !== 0 && isWalkable(m.x + dx, m.y)) {
-            m.x += dx;
-          } else if (dy !== 0 && isWalkable(m.x, m.y + dy)) {
-            m.y += dy;
-          }
-        }
-
-        if (m.x === player.x && m.y === player.y) {
-          resetGame();
-          return;
+      if (m.repathTimer > 8 || !m.path) {
+        m.repathTimer = 0;
+        const newPath = bfsPath(m.x, m.y, player.x, player.y);
+        if (newPath && newPath.length > 0) {
+          m.path = newPath;
+          m.pathIndex = 0;
+        } else {
+          m.path = null;
         }
       }
-    }
 
-    function gameLoop() {
-      if (moveCooldown > 0) moveCooldown--;
+      let moved = false;
 
-      if (gameState === 'playing') {
-        if (moveCooldown === 0) {
-          let dx = 0, dy = 0;
-          if (keys.ArrowUp || touchDir.up) dy = -1;
-          else if (keys.ArrowDown || touchDir.down) dy = 1;
-          else if (keys.ArrowLeft || touchDir.left) dx = -1;
-          else if (keys.ArrowRight || touchDir.right) dx = 1;
-
-          if (dx !== 0 || dy !== 0) {
-            movePlayer(dx, dy);
-          }
+      if (m.path && m.pathIndex < m.path.length) {
+        const next = m.path[m.pathIndex];
+        if (isWalkable(next.x, next.y)) {
+          m.x = next.x;
+          m.y = next.y;
+          m.pathIndex++;
+          moved = true;
+        } else {
+          m.path = null;
         }
-        updateMonsters();
       }
 
-      draw();
-      requestAnimationFrame(gameLoop);
+      if (!moved) {
+        const dx = Math.sign(player.x - m.x);
+        const dy = Math.sign(player.y - m.y);
+
+        if (dx !== 0 && isWalkable(m.x + dx, m.y)) {
+          m.x += dx;
+        } else if (dy !== 0 && isWalkable(m.x, m.y + dy)) {
+          m.y += dy;
+        }
+      }
+
+      if (m.x === player.x && m.y === player.y) {
+        resetGame();
+        return;
+      }
+    }
+  }
+
+  function gameLoop() {
+    if (moveCooldown > 0) moveCooldown--;
+
+    if (gameState === 'playing') {
+      if (moveCooldown === 0) {
+        let dx = 0, dy = 0;
+        if (keys.ArrowUp || touchDir.up) dy = -1;
+        else if (keys.ArrowDown || touchDir.down) dy = 1;
+        else if (keys.ArrowLeft || touchDir.left) dx = -1;
+        else if (keys.ArrowRight || touchDir.right) dx = 1;
+
+        if (dx !== 0 || dy !== 0) {
+          movePlayer(dx, dy);
+        }
+      }
+      updateMonsters();
     }
 
-    function draw() {
-      ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+    draw();
+    requestAnimationFrame(gameLoop);
+  }
 
-      for (let y = 0; y < GRID_SIZE; y++) {
-        for (let x = 0; x < GRID_SIZE; x++)          const tile = map[y][x];
-          const px = x * TILE_SIZE;
-          const py = y * TILE_SIZE;
+  function draw() {
+    ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-          // 草地基础
-          ctx.fillStyle = '#4a7a4a';
+    for (let y = 0; y < GRID_SIZE; y++) {
+      for (let x = 0; x < GRID_SIZE; x++) {
+        const tile = map[y][x];
+        const px = x * TILE_SIZE;
+        const py = y * TILE_SIZE;
+
+        ctx.fillStyle = '#4a7a4a';
+        ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+        ctx.fillStyle = '#5e9c5e';
+        ctx.fillRect(px + 4, py + 4, 6, 6);
+        ctx.fillRect(px + 20, py + 12, 6, 6);
+        ctx.fillStyle = '#3a6a3a';
+        ctx.fillRect(px + 12, py + 22, 8, 4);
+
+        if (tile === TILE.WALL) {
+          ctx.fillStyle = '#4a3a2a';
           ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-          ctx.fillStyle = '#5e9c5e';
-          ctx.fillRect(px + 4, py + 4, 6, 6);
-          ctx.fillRect(px + 20, py + 12, 6, 6);
-          ctx.fillStyle = '#3a6a3a';
-          ctx.fillRect(px + 12, py + 22, 8, 4);
-
-          if (tile === TILE.WALL) {
-            ctx.fillStyle = '#4a3a2a';
-            ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-            ctx.fillStyle = '#2e2218';
-            ctx.fillRect(px + 4, py + 4, 24, 8);
-            ctx.fillRect(px + 4, py + 20, 24, 8);
-            ctx.fillStyle = '#6a5a4a';
-            ctx.fillRect(px + 4, py + 14, 24, 4);
-            ctx.fillStyle = '#8a7a6a';
-            ctx.fillRect(px, py, TILE_SIZE, 2);
-            ctx.fillRect(px, py, 2, TILE_SIZE);
-          } else if (tile === TILE.GEM) {
-            ctx.shadowColor = '#ffffaa';
-            ctx.shadowBlur = 8;
-            ctx.fillStyle = '#ffd966';
-            ctx.beginPath();
-            ctx.moveTo(px + 16, py + 6);
-            ctx.lineTo(px + 26, py + 16);
-            ctx.lineTo(px + 16, py + 26);
-            ctx.lineTo(px + 6, py + 16);
-            ctx.closePath();
-            ctx.fill();
-            ctx.fillStyle = '#ffeeaa';
-            ctx.beginPath();
-            ctx.moveTo(px + 16, py + 10);
-            ctx.lineTo(px + 22, py + 16);
-            ctx.lineTo(px + 16, py + 22);
-            ctx.lineTo(px + 10, py + 16);
-            ctx.closePath();
-            ctx.fill();
-            ctx.shadowBlur = 0;
-          }
+          ctx.fillStyle = '#2e2218';
+          ctx.fillRect(px + 4, py + 4, 24, 8);
+          ctx.fillRect(px + 4, py + 20, 24, 8);
+          ctx.fillStyle = '#6a5a4a';
+          ctx.fillRect(px + 4, py + 14, 24, 4);
+          ctx.fillStyle = '#8a7a6a';
+          ctx.fillRect(px, py, TILE_SIZE, 2);
+          ctx.fillRect(px, py, 2, TILE_SIZE);
+        } else if (tile === TILE.GEM) {
+          ctx.shadowColor = '#ffffaa';
+          ctx.shadowBlur = 8;
+          ctx.fillStyle = '#ffd966';
+          ctx.beginPath();
+          ctx.moveTo(px + 16, py + 6);
+          ctx.lineTo(px + 26, py + 16);
+          ctx.lineTo(px + 16, py + 26);
+          ctx.lineTo(px + 6, py + 16);
+          ctx.closePath();
+          ctx.fill();
+          ctx.fillStyle = '#ffeeaa';
+          ctx.beginPath();
+          ctx.moveTo(px + 16, py + 10);
+          ctx.lineTo(px + 22, py + 16);
+          ctx.lineTo(px + 16, py + 22);
+          ctx.lineTo(px + 10, py + 16);
+          ctx.closePath();
+          ctx.fill();
+          ctx.shadowBlur = 0;
         }
-      }
-
-      // 绘制怪物
-      monsters.forEach(m => {
-        const px = m.x * TILE_SIZE;
-        const py = m.y * TILE_SIZE;
-        ctx.fillStyle = '#9b59b6';
-        ctx.beginPath();
-        ctx.ellipse(px + 16, py + 18, 12, 10, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#b07cc6';
-        ctx.beginPath();
-        ctx.ellipse(px + 12, py + 14, 5, 4, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(px + 10, py + 16, 3, 0, Math.PI * 2);
-        ctx.arc(px + 22, py + 16, 3, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#2c1e2e';
-        ctx.beginPath();
-        ctx.arc(px + 9, py + 16, 1.5, 0, Math.PI * 2);
-        ctx.arc(px + 21, py + 16, 1.5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#e0b0ff';
-        ctx.beginPath();
-        ctx.arc(px + 16 + (m.dir || 1) * 10, py + 22, 3, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      // 绘制玩家
-      const ppx = player.x * TILE_SIZE;
-      const ppy = player.y * TILE_SIZE;
-
-      ctx.fillStyle = '#2e86c1';
-      ctx.fillRect(ppx + 8, ppy + 12, 16, 14);
-      ctx.fillStyle = '#f1c40f';
-      ctx.beginPath();
-      ctx.arc(ppx + 16, ppy + 10, 8, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#1e2a3a';
-      ctx.beginPath();
-      ctx.arc(ppx + 13, ppy + 8, 2, 0, Math.PI * 2);
-      ctx.arc(ppx + 19, ppy + 8, 2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#e67e22';
-      ctx.fillRect(ppx + 8, ppy + 2, 16, 6);
-      ctx.fillRect(ppx + 12, ppy, 8, 4);
-      ctx.fillStyle = '#5d4e3a';
-      ctx.fillRect(ppx + 8, ppy + 26, 6, 6);
-      ctx.fillRect(ppx + 18, ppy + 26, 6, 6);
-
-      // 开始 / 通关覆盖层
-      if (gameState === 'start') {
-        ctx.fillStyle = 'rgba(10, 20, 8, 0.8)';
-        ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-        ctx.font = 'bold 32px "Courier New", monospace';
-        ctx.fillStyle = '#f0f0c0';
-        ctx.shadowColor = '#2a4a2a';
-        ctx.shadowBlur = 12;
-        ctx.textAlign = 'center';
-        ctx.fillText('⚔️ 像素冒险', CANVAS_SIZE / 2, 180);
-        ctx.font = '24px "Courier New", monospace';
-        ctx.fillStyle = '#b8e0a0';
-        ctx.fillText('收集所有宝石', CANVAS_SIZE / 2, 260);
-        ctx.font = '20px "Courier New", monospace';
-        ctx.fillStyle = '#ffd966';
-        ctx.fillText('点击屏幕开始', CANVAS_SIZE / 2, 340);
-        ctx.shadowBlur = 0;
-        ctx.textAlign = 'left';
-      } else if (gameState === 'win') {
-        ctx.fillStyle = 'rgba(20, 40, 15, 0.9)';
-        ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-        ctx.font = 'bold 38px "Courier New", monospace';
-        ctx.fillStyle = '#ffd966';
-        ctx.shadowColor = '#8a6e2a';
-        ctx.shadowBlur = 16;
-        ctx.textAlign = 'center';
-        ctx.fillText('✨ 通关！', CANVAS_SIZE / 2, 200);
-        ctx.font = '26px "Courier New", monospace';
-        ctx.fillStyle = '#e0f0b0';
-        ctx.fillText('得分: ' + score, CANVAS_SIZE / 2, 280);
-        ctx.font = '22px "Courier New", monospace';
-        ctx.fillStyle = '#b8e0a0';
-        ctx.fillText('点击重新开始', CANVAS_SIZE / 2, 360);
-        ctx.shadowBlur = 0;
-        ctx.textAlign = 'left';
       }
     }
 
-    // 键盘控制
-    window.addEventListener('keydown', (e) => {
-      if (e.key.startsWith('Arrow')) {
-        e.preventDefault();
-        keys[e.key] = true;
-      }
-    });
-    window.addEventListener('keyup', (e) => {
-      if (e.key.startsWith('Arrow')) {
-        e.preventDefault();
-        keys[e.key] = false;
-      }
-    });
-
-    // 虚拟方向键
-    document.querySelectorAll('.dpad-btn').forEach(btn => {
-      const dir = btn.dataset.dir;
-
-      const press = (e) => {
-        e.preventDefault();
-        if (dir === 'up') touchDir.up = true;
-        if (dir === 'down') touchDir.down = true;
-        if (dir === 'left') touchDir.left = true;
-        if (dir === 'right') touchDir.right = true;
-      };
-      const release = (e) => {
-        e.preventDefault();
-        if (dir === 'up') touchDir.up = false;
-        if (dir === 'down') touchDir.down = false;
-        if (dir === 'left') touchDir.left = false;
-        if (dir === 'right') touchDir.right = false;
-      };
-
-      btn.addEventListener('mousedown', press);
-      btn.addEventListener('mouseup', release);
-      btn.addEventListener('mouseleave', release);
-      btn.addEventListener('touchstart', press, { passive: false });
-      btn.addEventListener('touchend', release, { passive: false });
-      btn.addEventListener('touchcancel', release, { passive: false });
+    monsters.forEach(m => {
+      const px = m.x * TILE_SIZE;
+      const py = m.y * TILE_SIZE;
+      ctx.fillStyle = '#9b59b6';
+      ctx.beginPath();
+      ctx.ellipse(px + 16, py + 18, 12, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#b07cc6';
+      ctx.beginPath();
+      ctx.ellipse(px + 12, py + 14, 5, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(px + 10, py + 16, 3, 0, Math.PI * 2);
+      ctx.arc(px + 22, py + 16, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#2c1e2e';
+      ctx.beginPath();
+      ctx.arc(px + 9, py + 16, 1.5, 0, Math.PI * 2);
+      ctx.arc(px + 21, py + 16, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#e0b0ff';
+      ctx.beginPath();
+      ctx.arc(px + 16 + (m.dir || 1) * 10, py + 22, 3, 0, Math.PI * 2);
+      ctx.fill();
     });
 
-    // 画布点击开始 / 重开
-    canvas.addEventListener('click', () => {
+    const ppx = player.x * TILE_SIZE;
+    const ppy = player.y * TILE_SIZE;
+
+    ctx.fillStyle = '#2e86c1';
+    ctx.fillRect(ppx + 8, ppy + 12, 16, 14);
+    ctx.fillStyle = '#f1c40f';
+    ctx.beginPath();
+    ctx.arc(ppx + 16, ppy + 10, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#1e2a3a';
+    ctx.beginPath();
+    ctx.arc(ppx + 13, ppy + 8, 2, 0, Math.PI * 2);
+    ctx.arc(ppx + 19, ppy + 8, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#e67e22';
+    ctx.fillRect(ppx + 8, ppy + 2, 16, 6);
+    ctx.fillRect(ppx + 12, ppy, 8, 4);
+    ctx.fillStyle = '#5d4e3a';
+    ctx.fillRect(ppx + 8, ppy + 26, 6, 6);
+    ctx.fillRect(ppx + 18, ppy + 26, 6, 6);
+
+    if (gameState === 'start') {
+      ctx.fillStyle = 'rgba(10, 20, 8, 0.8)';
+      ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+      ctx.font = 'bold 32px "Courier New", monospace';
+      ctx.fillStyle = '#f0f0c0';
+      ctx.shadowColor = '#2a4a2a';
+      ctx.shadowBlur = 12;
+      ctx.textAlign = 'center';
+      ctx.fillText('⚔️ 像素冒险', CANVAS_SIZE / 2, 180);
+      ctx.font = '24px "Courier New", monospace';
+      ctx.fillStyle = '#b8e0a0';
+      ctx.fillText('收集所有宝石', CANVAS_SIZE / 2, 260);
+      ctx.font = '20px "Courier New", monospace';
+      ctx.fillStyle = '#ffd966';
+      ctx.fillText('点击屏幕开始', CANVAS_SIZE / 2, 340);
+      ctx.shadowBlur = 0;
+      ctx.textAlign = 'left';
+    } else if (gameState === 'win') {
+      ctx.fillStyle = 'rgba(20, 40, 15, 0.9)';
+      ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+      ctx.font = 'bold 38px "Courier New", monospace';
+      ctx.fillStyle = '#ffd966';
+      ctx.shadowColor = '#8a6e2a';
+      ctx.shadowBlur = 16;
+      ctx.textAlign = 'center';
+      ctx.fillText('✨ 通关！', CANVAS_SIZE / 2, 200);
+      ctx.font = '26px "Courier New", monospace';
+      ctx.fillStyle = '#e0f0b0';
+      ctx.fillText('得分: ' + score, CANVAS_SIZE / 2, 280);
+      ctx.font = '22px "Courier New", monospace';
+      ctx.fillStyle = '#b8e0a0';
+      ctx.fillText('点击重新开始', CANVAS_SIZE / 2, 360);
+      ctx.shadowBlur = 0;
+      ctx.textAlign = 'left';
+    }
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key.startsWith('Arrow')) {
+      e.preventDefault();
+      keys[e.key] = true;
+    }
+  });
+  window.addEventListener('keyup', (e) => {
+    if (e.key.startsWith('Arrow')) {
+      e.preventDefault();
+      keys[e.key] = false;
+    }
+  });
+
+  document.querySelectorAll('.dpad-btn').forEach(btn => {
+    const dir = btn.dataset.dir;
+    const press = (e) => {
+      e.preventDefault();
+      if (dir === 'up') touchDir.up = true;
+      if (dir === 'down') touchDir.down = true;
+      if (dir === 'left') touchDir.left = true;
+      if (dir === 'right') touchDir.right = true;
+    };
+    const release = (e) => {
+      e.preventDefault();
+      if (dir === 'up') touchDir.up = false;
+      if (dir === 'down') touchDir.down = false;
+      if (dir === 'left') touchDir.left = false;
+      if (dir === 'right') touchDir.right = false;
+    };
+    btn.addEventListener('mousedown', press);
+    btn.addEventListener('mouseup', release);
+    btn.addEventListener('mouseleave', release);
+    btn.addEventListener('touchstart', press, { passive: false });
+    btn.addEventListener('touchend', release, { passive: false });
+    btn.addEventListener('touchcancel', release, { passive: false });
+  });
+
+  canvas.addEventListener('click', () => {
+    if (gameState === 'start') {
+      gameState = 'playing';
+      moveCooldown = 0;
+      monsterMoveTimer = 0;
+    } else if (gameState === 'win') {
+      resetGame();
+      gameState = 'playing';
+      moveCooldown = 0;
+      monsterMoveTimer = 0;
+    }
+  });
+
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (gameState === 'start' || gameState === 'win') {
       if (gameState === 'start') {
         gameState = 'playing';
         moveCooldown = 0;
@@ -782,28 +657,12 @@ radius; dx <= radius; dx++) {
         moveCooldown = 0;
         monsterMoveTimer = 0;
       }
-    });
+    }
+  }, { passive: false });
 
-    canvas.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      if (gameState === 'start' || gameState === 'win') {
-        if (gameState === 'start') {
-          gameState = 'playing';
-          moveCooldown = 0;
-          monsterMoveTimer = 0;
-        } else if (gameState === 'win') {
-          resetGame();
-          gameState = 'playing';
-          moveCooldown = 0;
-          monsterMoveTimer = 0;
-        }
-      }
-    }, { passive: false });
-
-    // 初始化并启动
-    resetGame();
-    gameLoop();
-  })();
+  resetGame();
+  gameLoop();
+})();
 </script>
 </body>
 </html>
