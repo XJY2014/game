@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>士兵跑酷 · 躲避伊朗导弹</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #1a1e2c;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Courier New', Courier, monospace;
+      padding: 12px;
+    }
+    .game-wrapper {
+      background: #2a2f42;
+      padding: 20px 20px 24px;
+      border-radius: 32px;
+      box-shadow: 0 12px 0 #0f121c, 0 16px 24px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      border-radius: 16px;
+      background: #87CEEB;
+      box-shadow: inset 0 0 0 4px #1e2430, 0 8px 0 #0f121c;
+      cursor: pointer;
+      max-width: 800px;
+      touch-action: none;
+    }
+    .hud {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 12px 0 8px;
+      color: #e0f0c0;
+      text-shadow: 2px 2px 0 #0f121c;
+      font-size: 1.5rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      padding: 0 8px;
+    }
+    .score {
+      background: #1e2430;
+      padding: 6px 20px;
+      border-radius: 30px;
+      box-shadow: inset 0 -4px 0 #0b0e15, 0 4px 0 #0b0e15;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .score span {
+      color: #ffd966;
+      font-size: 1.8rem;
+      line-height: 1;
+    }
+    .controls-hint {
+      color: #8faa7a;
+      font-size: 1rem;
+      font-weight: bold;
+      display: flex;
+      gap: 12px;
+      background: #1e2430;
+      padding: 6px 16px;
+      border-radius: 30px;
+      box-shadow: inset 0 -3px 0 #0b0e15;
+    }
+    .action-btns {
+      display: flex;
+      gap: 24px;
+      margin-top: 16px;
+      justify-content: center;
+    }
+    .action-btn {
+      background: #4a6741;
+      min-width: 120px;
+      height: 70px;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: #d4e8b0;
+      text-shadow: 3px 3px 0 #1f2e1a;
+      box-shadow: 0 8px 0 #1f2e1a, 0 6px 12px rgba(0, 0, 0, 0.5);
+      transition: all 0.05s ease;
+      touch-action: manipulation;
+      cursor: pointer;
+      user-select: none;
+      border: none;
+      padding: 0 20px;
+    }
+    .action-btn:active {
+      transform: translateY(5px);
+      box-shadow: 0 3px 0 #1f2e1a, 0 6px 12px rgba(0, 0, 0, 0.5);
+      background: #5d7e52;
+    }
+    @media (max-width: 600px) {
+      .action-btn {
+        min-width: 90px;
+        height: 60px;
+        font-size: 1.3rem;
+        border-radius: 20px;
+      }
+      .hud {
+        font-size: 1.2rem;
+      }
+      .score span {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="game-wrapper">
+  <div class="hud">
+    <div class="score">💥 距离 <span id="scoreDisplay">0</span></div>
+    <div class="controls-hint">空格/↑跳跃 ↓下滑</div>
+  </div>
+
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+  <div class="action-btns">
+    <button class="action-btn" id="jumpBtn">⬆ 跳跃</button>
+    <button class="action-btn" id="duckBtn">⬇ 下滑</button>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const CANVAS_W = 800;
+    const CANVAS_H = 400;
+    const GROUND_Y = 330;
+    const GRAVITY = 0.65;
+    const JUMP_FORCE = -12;
+    const PLAYER_X = 120;
+
+    let gameState = 'start';
+    let distance = 0;
+    let highScore = 0;
+    let speed = 5;
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreSpan = document.getElementById('scoreDisplay');
+
+    let player = {
+      y: GROUND_Y,
+      vy: 0,
+      isJumping: false,
+      isDucking: false,
+      w: 36,
+      h: 60,
+      duckH: 34
+    };
+
+    let obstacles = [];
+    let missile = {
+      x: 800,
+      y: GROUND_Y - 40,
+      w: 90,
+      h: 28,
+      active: false,
+      trail: []
+    };
+
+    let particles = [];
+    let clouds = [];
+    let frameCount = 0;
+    let spawnTimer = 0;
+    let missileSpawnTimer = 0;
+    let missileActive = false;
+
+    const keys = { jump: false, duck: false };
+    let jumpPressed = false;
+
+    function resetGame() {
+      gameState = 'playing';
+      distance = 0;
+      speed = 5;
+      player.y = GROUND_Y;
+      player.vy = 0;
+      player.isJumping = false;
+      player.isDucking = false;
+      obstacles = [];
+      particles = [];
+      missile = {
+        x: CANVAS_W + 100,
+        y: GROUND_Y - 40,
+        w: 90,
+        h: 28,
+        active: false,
+        trail: []
+      };
+      missileActive = false;
+      missileSpawnTimer = 0;
+      spawnTimer = 0;
+      frameCount = 0;
+      updateScoreUI();
+      initClouds();
+    }
+
+    function initClouds() {
+      clouds = [];
+      for (let i = 0; i < 6; i++) {
+        clouds.push({
+          x: Math.random() * CANVAS_W,
+          y: 40 + Math.random() * 120,
+          w: 60 + Math.random() * 60,
+          h: 20 + Math.random() * 15,
+          speed: 0.3 + Math.random() * 0.5
+        });
+      }
+    }
+
+    function updateScoreUI() {
+      scoreSpan.textContent = Math.floor(distance / 10);
+    }
+
+    function spawnObstacle() {
+      const types = ['cactus', 'crate', 'barrier'];
+      const type = types[Math.floor(Math.random() * types.length)];
+      let obs;
+
+      if (type === 'cactus') {
+        const h = 40 + Math.random() * 40;
+        obs = {
+          x: CANVAS_W + 40,
+          y: GROUND_Y - h,
+          w: 24,
+          h: h,
+          type: 'cactus',
+          passed: false
+        };
+      } else if (type === 'crate') {
+        const size = 36 + Math.random() * 20;
+        obs = {
+          x: CANVAS_W + 40,
+          y: GROUND_Y - size,
+          w: size,
+          h: size,
+          type: 'crate',
+          passed: false
+        };
+      } else {
+        obs = {
+          x: CANVAS_W + 40,
+          y: GROUND_Y - 50,
+          w: 30,
+          h: 50,
+          type: 'barrier',
+          passed: false
+        };
+      }
+      obstacles.push(obs);
+    }
+
+    function spawnMissile() {
+      missileActive = true;
+      missile = {
+        x: CANVAS_W + 200,
+        y: GROUND_Y - 60 - Math.random() * 60,
+        w: 100,
+        h: 30,
+        active: true,
+        trail: []
+      };
+    }
+
+    function updateMissile() {
+      if (!missileActive) return;
+
+      missile.x -= speed * 1.6;
+
+      missile.trail.unshift({ x: missile.x + missile.w, y: missile.y + missile.h / 2, life: 1.0 });
+      if (missile.trail.length > 20) missile.trail.pop();
+      for (let t of missile.trail) {
+        t.life -= 0.04;
+      }
+      missile.trail = missile.trail.filter(t => t.life > 0);
+
+      if (missile.x + missile.w < -100) {
+        missileActive = false;
+        missile.active = false;
+      }
+    }
+
+    function checkMissileCollision() {
+      if (!missileActive || !missile.active) return false;
+      const px = PLAYER_X + 6;
+      const pw = player.w - 12;
+      const py = player.isDucking ? GROUND_Y - player.duckH : player.y - player.h;
+      const ph = player.isDucking ? player.duckH : player.h;
+
+      if (px < missile.x + missile.w &&
+          px + pw > missile.x &&
+          py < missile.y + missile.h &&
+          py + ph > missile.y) {
+        return true;
+      }
+      return false;
+    }
+
+    function checkObstacleCollision() {
+      for (let obs of obstacles) {
+        const px = PLAYER_X + 8;
+        const pw = player.w - 16;
+        const py = player.isDucking ? GROUND_Y - player.duckH : player.y - player.h;
+        const ph = player.isDucking ? player.duckH : player.h;
+
+        if (px < obs.x + obs.w &&
+            px + pw > obs.x &&
+            py < obs.y + obs.h &&
+            py + ph > obs.y) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function createExplosion(x, y) {
+      for (let i = 0; i < 30; i++) {
+        particles.push({
+          x: x,
+          y: y,
+          vx: (Math.random() - 0.5) * 12,
+          vy: (Math.random() - 0.5) * 12 - 2,
+          life: 1.0,
+          color: Math.random() > 0.5 ? '#ff4400' : '#ffaa00',
+          size: 4 + Math.random() * 6
+        });
+      }
+    }
+
+    function updateParticles() {
+      for (let p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.3;
+        p.life -= 0.02;
+      }
+      particles = particles.filter(p => p.life > 0);
+    }
+
+    function gameOver() {
+      gameState = 'gameover';
+      const scoreVal = Math.floor(distance / 10);
+      if (scoreVal > highScore) highScore = scoreVal;
+      createExplosion(PLAYER_X + player.w / 2, player.y - player.h / 2);
+    }
+
+    function update() {
+      if (gameState !== 'playing') return;
+
+      frameCount++;
+
+      distance += speed;
+      speed = Math.min(12, 5 + distance / 2000);
+      updateScoreUI();
+
+      if (player.isJumping) {
+        player.vy += GRAVITY;
+        player.y += player.vy;
+
+        if (player.y >= GROUND_Y) {
+          player.y = GROUND_Y;
+          player.vy = 0;
+          player.isJumping = false;
+        }
+      }
+
+      spawnTimer++;
+      const spawnInterval = Math.max(45, 90 - Math.floor(distance / 500));
+      if (spawnTimer > spawnInterval) {
+        spawnTimer = 0;
+        spawnObstacle();
+      }
+
+      missileSpawnTimer++;
+      if (missileSpawnTimer > 300 && !missileActive && distance > 800) {
+        missileSpawnTimer = 0;
+        if (Math.random() < 0.4) {
+          spawnMissile();
+        }
+      }
+
+      for (let obs of obstacles) {
+        obs.x -= speed;
+      }
+      obstacles = obstacles.filter(o => o.x + o.w > -50);
+
+      updateMissile();
+
+      if (checkObstacleCollision() || checkMissileCollision()) {
+        gameOver();
+      }
+
+      for (let c of clouds) {
+        c.x -= c.speed;
+        if (c.x + c.w < 0) {
+          c.x = CANVAS_W + 20;
+          c.y = 40 + Math.random() * 120;
+        }
+      }
+
+      updateParticles();
+    }
+
+    function drawSky() {
+      const grad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+      grad.addColorStop(0, '#4A90D9');
+      grad.addColorStop(0.6, '#87CEEB');
+      grad.addColorStop(1, '#B0E0E6');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, CANVAS_W, GROUND_Y);
+    }
+
+    function drawClouds() {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      for (let c of clouds) {
+        ctx.beginPath();
+        ctx.ellipse(c.x, c.y, c.w / 2, c.h / 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(c.x - c.w / 3, c.y + 5, c.w / 3, c.h / 2.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(c.x + c.w / 3, c.y + 3, c.w / 3, c.h / 2.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawGround() {
+      ctx.fillStyle = '#8B7355';
+      ctx.fillRect(0, GROUND_Y, CANVAS_W, CANVAS_H - GROUND_Y);
+
+      ctx.fillStyle = '#6B5335';
+      for (let i = 0; i < CANVAS_W; i += 40) {
+        const offset = (frameCount * speed * 0.5) % 40;
+        ctx.fillRect(i - offset, GROUND_Y, 20, 6);
+      }
+
+      ctx.fillStyle = '#5a8a3a';
+      ctx.fillRect(0, GROUND_Y - 4, CANVAS_W, 6);
+
+      ctx.fillStyle = '#4a7a2a';
+      for (let i = 0; i < CANVAS_W; i += 16) {
+        const offset = (frameCount * speed * 0.8) % 16;
+        ctx.fillRect(i - offset, GROUND_Y - 6, 4, 4);
+      }
+    }
+
+    function drawMissile() {
+      if (!missileActive || !missile.active) return;
+
+      for (let t of missile.trail) {
+        ctx.fillStyle = `rgba(255, ${80 + t.life * 100}, 0, ${t.life * 0.7})`;
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, 4 + t.life * 8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      const mx = missile.x;
+      const my = missile.y;
+      const mw = missile.w;
+      const mh = missile.h;
+
+      ctx.fillStyle = '#c0c0c0';
+      ctx.beginPath();
+      ctx.moveTo(mx + mw, my + mh / 2);
+      ctx.lineTo(mx + mw - 30, my);
+      ctx.lineTo(mx + mw - 30, my + mh);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#a0a0a0';
+      ctx.fillRect(mx, my + 4, mw - 30, mh - 8);
+
+      ctx.fillStyle = '#ff2222';
+      ctx.beginPath();
+      ctx.arc(mx + mw - 40, my + mh / 2, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#333';
+      ctx.fillRect(mx + 10, my - 4, 15, 6);
+      ctx.fillRect(mx + 10, my + mh - 2, 15, 6);
+
+      ctx.font = 'bold 14px "Courier New"';
+      ctx.fillStyle = '#ffcc00';
+      ctx.textAlign = 'center';
+      ctx.fillText('☢', mx + mw - 55, my + mh / 2 + 5);
+      ctx.textAlign = 'left';
+
+      ctx.fillStyle = 'rgba(255, 200, 0, 0.6)';
+      ctx.beginPath();
+      ctx.ellipse(mx - 5, my + mh / 2, 12, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ff6600';
+      ctx.beginPath();
+      ctx.ellipse(mx - 10, my + mh / 2, 8, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawObstacles() {
+      for (let obs of obstacles) {
+        if (obs.type === 'cactus') {
+          ctx.fillStyle = '#2d6a2d';
+          ctx.fillRect(obs.x + 6, obs.y, obs.w - 12, obs.h);
+          ctx.fillRect(obs.x, obs.y + obs.h * 0.3, 8, obs.h * 0.4);
+          ctx.fillRect(obs.x + obs.w - 8, obs.y + obs.h * 0.2, 8, obs.h * 0.5);
+          ctx.fillStyle = '#3d8a3d';
+          ctx.fillRect(obs.x + 8, obs.y, 6, obs.h);
+        } else if (obs.type === 'crate') {
+          ctx.fillStyle = '#8B6914';
+          ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+          ctx.strokeStyle = '#5a4510';
+          ctx.lineWidth = 3;
+          ctx.strokeRect(obs.x + 2, obs.y + 2, obs.w - 4, obs.h - 4);
+          ctx.beginPath();
+          ctx.moveTo(obs.x + 4, obs.y + 4);
+          ctx.lineTo(obs.x + obs.w - 4, obs.y + obs.h - 4);
+          ctx.moveTo(obs.x + obs.w - 4, obs.y + 4);
+          ctx.lineTo(obs.x + 4, obs.y + obs.h - 4);
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = '#666';
+          ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+          ctx.fillStyle = '#888';
+          ctx.fillRect(obs.x + 2, obs.y + 2, obs.w - 4, obs.h - 4);
+          ctx.fillStyle = '#ffcc00';
+          for (let i = 0; i < obs.h; i += 12) {
+            ctx.fillRect(obs.x, obs.y + i, obs.w, 6);
+          }
+          ctx.fillStyle = '#444';
+          ctx.fillRect(obs.x - 2, obs.y + obs.h - 8, obs.w + 4, 8);
+        }
+      }
+    }
+
+    function drawPlayer() {
+      const px = PLAYER_X;
+      const py = player.isDucking ? GROUND_Y - player.duckH : player.y - player.h;
+      const ph = player.isDucking ? player.duckH : player.h;
+      const pw = player.w;
+
+      if (gameState === 'gameover') {
+        ctx.globalAlpha = 0.5;
+      }
+
+      if (player.isDucking) {
+        ctx.fillStyle = '#4a5a3a';
+        ctx.fillRect(px, py + 10, pw, ph - 10);
+        ctx.fillStyle = '#3a4a2a';
+        ctx.fillRect(px + 4, py + 4, pw - 8, 12);
+        ctx.fillStyle = '#f1c40f';
+        ctx.beginPath();
+        ctx.arc(px + pw / 2 + 6, py + 8, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#1e2a3a';
+        ctx.beginPath();
+        ctx.arc(px + pw / 2 + 9, py + 6, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#2d6a2d';
+        ctx.fillRect(px - 2, py + 12, 8, 6);
+        ctx.fillRect(px + pw - 6, py + 12, 8, 6);
+      } else {
+        ctx.fillStyle = '#4a5a3a';
+        ctx.fillRect(px + 6, py + 20, pw - 12, 28);
+        ctx.fillStyle = '#3a4a2a';
+        ctx.fillRect(px + 4, py + 10, pw - 8, 14);
+        ctx.fillStyle = '#f1c40f';
+        ctx.beginPath();
+        ctx.arc(px + pw / 2 + 4, py + 14, 11, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#1e2a3a';
+        ctx.beginPath();
+        ctx.arc(px + pw / 2 + 7, py + 12, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#5a6a4a';
+        ctx.fillRect(px + 2, py + 44, 12, 16);
+        ctx.fillRect(px + pw - 14, py + 44, 12, 16);
+        ctx.fillStyle = '#2d6a2d';
+        ctx.fillRect(px + 6, py + 46, 6, 16);
+        ctx.fillRect(px + pw - 12, py + 46, 6, 16);
+        ctx.fillStyle = '#4a5a3a';
+        ctx.fillRect(px + pw - 6, py + 24, 10, 20);
+        ctx.fillStyle = '#333';
+        ctx.fillRect(px + pw - 4, py + 22, 12, 5);
+        ctx.fillRect(px + pw - 4, py + 40, 12, 5);
+        ctx.fillStyle = '#8B6914';
+        ctx.fillRect(px + pw - 8, py + 26, 4, 14);
+      }
+
+      ctx.globalAlpha = 1.0;
+    }
+
+    function drawParticles() {
+      for (let p of particles) {
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1.0;
+    }
+
+    function drawUI() {
+      if (gameState === 'start') {
+        ctx.fillStyle = 'rgba(10, 20, 30, 0.8)';
+        ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+        ctx.font = 'bold 42px "Courier New", monospace';
+        ctx.fillStyle = '#ffd966';
+        ctx.shadowColor = '#8a6e2a';
+        ctx.shadowBlur = 16;
+        ctx.textAlign = 'center';
+        ctx.fillText('🎖️ 士兵跑酷', CANVAS_W / 2, 140);
+        ctx.font = '24px "Courier New", monospace';
+        ctx.fillStyle = '#e0f0b0';
+        ctx.fillText('躲避伊朗导弹的追击！', CANVAS_W / 2, 200);
+        ctx.font = '20px "Courier New", monospace';
+        ctx.fillStyle = '#b8e0a0';
+        ctx.fillText('空格 / ↑ 跳跃    ↓ 下滑', CANVAS_W / 2, 260);
+        ctx.fillStyle = '#ffd966';
+        ctx.font = '26px "Courier New", monospace';
+        ctx.fillText('点击屏幕开始', CANVAS_W / 2, 330);
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'left';
+      } else if (gameState === 'gameover') {
+        ctx.fillStyle = 'rgba(20, 10, 5, 0.85)';
+        ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+        ctx.font = 'bold 48px "Courier New", monospace';
+        ctx.fillStyle = '#ff4444';
+        ctx.shadowColor = '#aa0000';
+        ctx.shadowBlur = 20;
+        ctx.textAlign = 'center';
+        ctx.fillText('💥 被导弹击中！', CANVAS_W / 2, 160);
+        ctx.font = '30px "Courier New", monospace';
+        ctx.fillStyle = '#e0f0b0';
+        ctx.fillText('距离: ' + Math.floor(distance / 10) + ' m', CANVAS_W / 2, 240);
+        if (highScore > 0) {
+          ctx.font = '22px "Courier New", monospace';
+          ctx.fillStyle = '#ffd966';
+          ctx.fillText('最佳: ' + highScore + ' m', CANVAS_W / 2, 290);
+        }
+        ctx.font = '24px "Courier New", monospace';
+        ctx.fillStyle = '#b8e0a0';
+        ctx.fillText('点击重新开始', CANVAS_W / 2, 360);
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'left';
+      }
+    }
+
+    function draw() {
+      drawSky();
+      drawClouds();
+      drawGround();
+
+      for (let obs of obstacles) {
+        drawObstacles();
+      }
+
+      drawMissile();
+      drawPlayer();
+      drawParticles();
+      drawUI();
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    function jump() {
+      if (gameState === 'start') {
+        resetGame();
+        return;
+      }
+      if (gameState === 'gameover') {
+        resetGame();
+        return;
+      }
+      if (!player.isJumping && gameState === 'playing') {
+        player.vy = JUMP_FORCE;
+        player.isJumping = true;
+        player.isDucking = false;
+      }
+    }
+
+    function duckStart() {
+      if (gameState === 'playing' && !player.isJumping) {
+        player.isDucking = true;
+      }
+    }
+
+    function duckEnd() {
+      player.isDucking = false;
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+        e.preventDefault();
+        jump();
+      }
+      if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        duckStart();
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+        duckEnd();
+      }
+    });
+
+    const jumpBtn = document.getElementById('jumpBtn');
+    const duckBtn = document.getElementById('duckBtn');
+
+    jumpBtn.addEventListener('mousedown', (e) => { e.preventDefault(); jump(); });
+    jumpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); }, { passive: false });
+
+    duckBtn.addEventListener('mousedown', (e) => { e.preventDefault(); duckStart(); });
+    duckBtn.addEventListener('mouseup', (e) => { e.preventDefault(); duckEnd(); });
+    duckBtn.addEventListener('mouseleave', duckEnd);
+    duckBtn.addEventListener('touchstart', (e) => { e.preventDefault(); duckStart(); }, { passive: false });
+    duckBtn.addEventListener('touchend', (e) => { e.preventDefault(); duckEnd(); }, { passive: false });
+    duckBtn.addEventListener('touchcancel', duckEnd);
+
+    canvas.addEventListener('click', () => {
+      if (gameState === 'start' || gameState === 'gameover') {
+        resetGame();
+      }
+    });
+
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      if (gameState === 'start' || gameState === 'gameover') {
+        resetGame();
+      }
+    }, { passive: false });
+
+    initClouds();
+    loop();
+
+  })();
+</script>
+</body>
+</html>
