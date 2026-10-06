@@ -83,235 +83,199 @@
 
 <script>
 (function() {
+  'use strict';
+
   const CANVAS_SIZE = 480;
   const TILE_SIZE = 32;
   const GRID_SIZE = CANVAS_SIZE / TILE_SIZE;
 
-  const TILE = { GRASS: 0, WALL: 1, GEM: 2 };
-  const PLAYER_START = { x: 1, y: 1 };
+  const GRASS = 0;
+  const WALL = 1;
+  const GEM = 2;
 
   let gameState = 'start';
   let score = 0;
   let map = [];
-  let player = { x: PLAYER_START.x, y: PLAYER_START.y };
+  let player = { x: 1, y: 1 };
   let monsters = [];
   let gemsRemaining = 0;
-  let totalGems = 0;
 
   const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
   const touchDir = { up: false, down: false, left: false, right: false };
 
-  let moveCooldown =  continue0;
-  const MOVE_COOLDOWN_MAX =;
- 10;
+  let moveCooldown = 0;
+  const MOVE_COOLDOWN_MAX = 10;
+  let monsterMoveTimer = 0;
+  const MONSTER_MOVE_INTERVAL = 26;
 
-  const canvas = document.getElementById       ('gameCanvas');
-  const ctx = canvas if.getContext('2d');
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
   const scoreSpan = document.getElementById('scoreDisplay');
 
-  // ---- 地图生成 ----
+  // ============ 地图生成 ============
   function generateRandomMap() {
-    const newMap = ( [];
+    const m = [];
     for (let y = 0; y < GRID_SIZE; y++) {
-      newMap[y] = [];
-map      for (let x = 0; x < GRID_SIZE; x++) {
+      m[y] = [];
+      for (let x = 0; x < GRID_SIZE; x++) {
         if (x === 0 || x === GRID_SIZE - 1 || y === 0 || y === GRID_SIZE - 1) {
-          newMap[y][x] = TILE.WALL;
+          m[y][x] = WALL;
         } else {
-          newMap[y][x] = TILE.GRASS;
+          m[y][x] = GRASS;
         }
       }
     }
 
+    // 随机房间（矩形墙块）
     const roomCount = 6 + Math.floor(Math.random() * 4);
     const rooms = [];
-
     for (let i = 0; i < roomCount; i++) {
       const w = 2 + Math.floor(Math.random() * 3);
       const h = 2 + Math.floor(Math.random() * 3);
-      const x = 1 + Math.floor(Math.random() * (GRID_SIZE - w - 2));
-      const y = 1 + Math.floor(Math.random() * (GRID_SIZE - h - 2));
+      const rx = 1 + Math.floor(Math.random() * (GRID_SIZE - w - 2));
+      const ry = 1 + Math.floor(Math.random() * (GRID_SIZE - h - 2));
 
       let overlaps = false;
       for (let r of rooms) {
-        if (x < r.x + r.w + 1 && x + w + 1 > r.x &&
-            y < r.y + r.h + 1 && y + h + 1 > r.y) {
+        if (rx < r.x + r.w + 1 && rx + w + 1 > r.x &&
+            ry < r.y + r.h + 1 && ry + h + 1 > r.y) {
           overlaps = true;
           break;
         }
       }
       if (!overlaps) {
-        rooms.push({ x, y, w[, h });
+        rooms.push({ x: rx, y: ry, w: w, h: h });
         for (let dy = 0; dy < h; dy++) {
           for (let dx = 0; dx < w; dx++) {
-            newMap[y + dy][x + dx] = TILE.WALL;
+            m[ry + dy][rx + dx] = WALL;
           }
         }
       }
     }
 
-    for (let i = 0; i < 12; i++) {
-      let wx, wy;
-      let attempts = 0;
-      do {
-        wx = 1 + Math.floor(Math.random() * (GRID_SIZE - 2));
-        wy = 1 + Math.floor(Math.random() * (GRID_SIZE - 2));
-        attempts++;
-      } while (newMap[wy][wx] !== TILE.GRASS && attempts < 50);
+    // 随机小墙段
+    for (let i = 0; i < 10; i++) {
+      let wx = 1 + Math.floor(Math.random() * (GRID_SIZE - 2));
+      let wy = 1 + Math.floor(Math.random() * (GRID_SIZE - 2));
+      if (m[wy][wx] !== GRASS) continue;
 
-      if (newMap[wy][wx] === TILE.GRASS) {
-        const len = 1 + Math.floor(Math.random() * 3);
-        if (Math.random() < 0.5) {
-          for (let d = 0; d < len; d++) {
-            if (wx + d < GRID_SIZE - 1 && newMap[wy][wx + d] === TILE.GRASS) {
-              newMap[wy][wx + d] = TILE.WALL;
-            }
+      const len = 1 + Math.floor(Math.random() * 3);
+      if (Math.random() < 0.5) {
+        for (let d = 0; d < len; d++) {
+          if (wx + d < GRID_SIZE - 1 && m[wy][wx + d] === GRASS) {
+            m[wy][wx + d] = WALL;
           }
-        } else {
-          for (let d = 0; d < len; d++) {
-            if (wy + d < GRID_SIZE - 1 && newMap[wy + d][wx] === TILE.GRASS) {
-              newMap[wy + d][wx] = TILE.WALL;
-            }
+        }
+      } else {
+        for (let d = 0; d < len; d++) {
+          if (wy + d < GRID_SIZE - 1 && m[wy + d][wx] === GRASS) {
+            m[wy + d][wx] = WALL;
           }
         }
       }
     }
 
-    newMap[1][1] = TILE.GRASS;
-    newMap[1][2] = TILE.GRASS;
-    newMap[2][1] = TILE.GRASS;
+    // 保证出生点开阔
+    m[1][1] = GRASS;
+    m[1][2] = GRASS;
+    m[2][1] = GRASS;
 
-    const gemCount = 6 + Math.floor(Math.random() * 4);
-    let placed = 0;
-    let safety = 0;
-    while (placed < gemCount && safety < 500) {
-      safety++;
-      const gx = 1 + Math.floor(Math.random() * (GRID_SIZE - 2));
-      const gy = 1 + Math.floor(Math.random() * (GRID_SIZE - 2));
-      if (newMap[gy][gx] === TILE.GRASS && !(gx === 1 && gy === 1)) {
-        newMap[gy][gx] = TILE.GEM;
-        placed++;
-      }
-    }
-
-    return newMap;
+    return m;
   }
 
-  // ---- 连通性检测 ----
-  function getReachableMap(map, startX, startY) {
-    const reachable = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(false));
-    if (!map[startY] || map[startY][startX] === TILE.WALL) return reachable;
+  // ============ BFS 可达区域 ============
+  function getReachable(m, sx, sy) {
+    const reach = [];
+    for (let y = 0; y < GRID_SIZE; y++) {
+      reach[y] = [];
+      for (let x = 0; x < GRID_SIZE; x++) {
+        reach[y][x] = false;
+      }
+    }
+    if (m[sy][sx] === WALL) return reach;
 
-    const queue = [{ x: startX, y: startY }];
-    reachable[startY][startX] = true;
-    const dirs = [
-      { dx: 0, dy: -1 }, { dx: 0, dy: 1 },
-      { dx: -1, dy: 0 }, { dx: 1, dy: 0 }
-    ];
+    const queue = [{ x: sx, y: sy }];
+    reach[sy][sx] = true;
     let head = 0;
     while (head < queue.length) {
-      const cur = queue[head++];
-      for (let d of dirs) {
-        const nx = cur.x + d.dx;
-        const ny = cur.y + d.dy;
-        if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) continue;
-        if (reachable[ny][nx])ny][nx] === TILE.WALL) continue;
-        reachable[ny][nx] = true;
-        queue.push({ x: nx, y: ny });
+      const cur = queue[head];
+      head++;
+      const nbs = [
+        { x: cur.x, y: cur.y - 1 },
+        { x: cur.x, y: cur.y + 1 },
+        { x: cur.x - 1, y: cur.y },
+        { x: cur.x + 1, y: cur.y }
+      ];
+      for (let k = 0; k < nbs.length; k++) {
+        const n = nbs[k];
+        if (n.x < 0 || n.x >= GRID_SIZE || n.y < 0 || n.y >= GRID_SIZE) continue;
+        if (reach[n.y][n.x]) continue;
+        if (m[n.y][n.x] === WALL) continue;
+        reach[n.y][n.x] = true;
+        queue.push(n);
       }
     }
-    return reachable;
+    return reach;
   }
 
-  function allGemsReachable(map) {
-    const reachable = getReachableMap(map, 1, 1);
-    for (let y = 0; y < GRID_SIZE; y++) {
-      for (let x = 0; x < GRID_SIZE; x++) {
-        if (map[y][x] === TILE.GEM && !reachable[y][x]) return false;
-      }
-    }
-    return true;
-  }
-
-  // ---- 找空地 ----
-  function findOpenTile(map, startX, startY) {
-    if (map[startY] && map[startY][startX] === TILE.GRASS) {
-      return { x: startX, y: startY };
-    }
-    for (let radius = 1; radius < GRID_SIZE; radius++) {
-      for (let dy = -radius; dy <= radius; dy++) {
-        for (let dx = -radius; dx <= radius; dx++) {
-          const nx = startX + dx;
-          const ny = startY + dy;
-          if (nx > 0 && nx < GRID_SIZE - 1 && ny > 0 && ny < GRID_SIZE - 1 &&
-              map[ny] && map[ny][nx] === TILE.GRASS) {
-            return { x: nx, y: ny };
-          }
+  // ============ 在可达区域放宝石（保证不会生成死路宝石） ============
+  function placeGems(m) {
+    const reach = getReachable(m, 1, 1);
+    const candidates = [];
+    for (let y = 1; y < GRID_SIZE - 1; y++) {
+      for (let x = 1; x < GRID_SIZE - 1; x++) {
+        if (m[y][x] === GRASS && reach[y][x] && !(x === 1 && y === 1)) {
+          candidates.push({ x: x, y: y });
         }
       }
     }
-    return { x: 1, y: 1 };
+    // 打乱
+    for (let i = candidates.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = candidates[i];
+      candidates[i] = candidates[j];
+      candidates[j] = tmp;
+    }
+    const gemCount = Math.min(6 + Math.floor(Math.random() * 4), candidates.length);
+    for (let i = 0; i < gemCount; i++) {
+      m[candidates[i].y][candidates[i].x] = GEM;
+    }
+    return gemCount;
   }
 
+  // ============ 开局重置 ============
   function resetGame() {
-    // 反复生成，直到所有宝石都可达（最多尝试 30 次）
-    let attempts = 0;
-    do {
-      map = generateRandomMap();
-      attempts++;
-    } while (!allGemsReachable(map) && attempts < 30);
+    map = generateRandomMap();
+    gemsRemaining = placeGems(map);
 
-    const playerPos = findOpenTile(map, 1, 1);
-    player.x = playerPos.x;
-    player.y = playerPos.y;
+    player.x = 1;
+    player.y = 1;
 
-    totalGems = 0;
-    for (let y = 0; y < GRID_SIZE; y++) {
-      for (let x = 0; x < GRID_SIZE; x++) {
-        if (map[y][x] === TILE.GEM) totalGems++;
+    // 怪物：只在可达区域、且离玩家足够远处生成
+    const reach = getReachable(map, 1, 1);
+    const monsterSpots = [];
+    for (let y = 1; y < GRID_SIZE - 1; y++) {
+      for (let x = 1; x < GRID_SIZE - 1; x++) {
+        if (map[y][x] !== WALL && reach[y][x]) {
+          const d = Math.abs(x - player.x) + Math.abs(y - player.y);
+          if (d > 7) monsterSpots.push({ x: x, y: y });
+        }
       }
     }
-    gemsRemaining = totalGems;
+    for (let i = monsterSpots.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = monsterSpots[i];
+      monsterSpots[i] = monsterSpots[j];
+      monsterSpots[j] = tmp;
+    }
 
     monsters = [];
-    const monsterCount = 2 + Math.floor(Math.random() * 3);
-    let placedMonsters = 0;
-    let safety = 0;
-    while (placedMonsters < monsterCount && safety < 300) {
-      safety++;
-      const mx = 2 + Math.floor(Math.random() * (GRID_SIZE - 4));
-      const my = 2 + Math.floor(Math.random() * (GRID_SIZE - 4));
-      const dist = Math.abs(mx - player.x) + Math.abs(my - player.y);
-      if (map[my][mx] === TILE.GRASS && dist > 7) {
-        let tooClose = false;
-        for (let m of monsters) {
-          if (Math.abs(m.x - mx) + Math.abs(m.y - my) < 3) {
-            tooClose = true;
-            break;
-          }
-        }
-        if (!tooClose) {
-          monsters.push({
-            x: mx,
-            y: my,
-            dir: Math.random() < 0.5 ? -1 : 1,
-            moveTimer: 0,
-            path: null,
-            pathIndex: 0,
-            repathTimer: 0
-          });
-          placedMonsters++;
-        }
-      }
-    }
-
-    if (monsters.length === 0) {
-      const fallback = findOpenTile(map, GRID_SIZE - 2, GRID_SIZE - 2);
+    const wantCount = Math.min(2 + Math.floor(Math.random() * 3), monsterSpots.length);
+    for (let i = 0; i < wantCount; i++) {
       monsters.push({
-        x: fallback.x,
-        y: fallback.y,
-        dir: 1,
-        moveTimer: 0,
+        x: monsterSpots[i].x,
+        y: monsterSpots[i].y,
+        dir: Math.random() < 0.5 ? -1 : 1,
         path: null,
         pathIndex: 0,
         repathTimer: 0
@@ -319,87 +283,90 @@ map      for (let x = 0; x < GRID_SIZE; x++) {
     }
 
     score = 0;
-    updateScoreUI();
+    scoreSpan.textContent = '0';
     moveCooldown = 0;
+    monsterMoveTimer = 0;
     gameState = 'start';
   }
 
-  function updateScoreUI() {
-    scoreSpan.textContent = score;
-  }
-
+  // ============ 工具 ============
   function isWalkable(x, y) {
     if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return false;
-    return map[y][x] !== TILE.WALL;
+    return map[y][x] !== WALL;
   }
 
+  // ============ 玩家移动 ============
   function movePlayer(dx, dy) {
     if (gameState !== 'playing') return;
     if (moveCooldown > 0) return;
 
-    const newX = player.x + dx;
-    const newY = player.y + dy;
+    const nx = player.x + dx;
+    const ny = player.y + dy;
+    if (!isWalkable(nx, ny)) return;
 
-    if (!isWalkable(newX, newY)) return;
+    player.x = nx;
+    player.y = ny;
 
-    player.x = newX;
-    player.y = newY;
-
-    if (map[newY][newX] === TILE.GEM) {
-      map[newY][newX] = TILE.GRASS;
+    if (map[ny][nx] === GEM) {
+      map[ny][nx] = GRASS;
       score += 10;
       gemsRemaining--;
-      updateScoreUI();
-
-      if (gemsRemaining === 0) {
+      scoreSpan.textContent = String(score);
+      if (gemsRemaining <= 0) {
         gameState = 'win';
       }
     }
 
-    checkMonsterCollision();
+    for (let i = 0; i < monsters.length; i++) {
+      if (monsters[i].x === player.x && monsters[i].y === player.y) {
+        resetGame();
+        return;
+      }
+    }
+
     moveCooldown = MOVE_COOLDOWN_MAX;
   }
 
-  function checkMonsterCollision() {
-    for (let m of monsters) {
-      if (m.x === player.x && m.y === player.y) {
-        resetGame();
-        break;
+  // ============ BFS 寻路 ============
+  function bfsPath(sx, sy, tx, ty) {
+    if (sx === tx && sy === ty) return null;
+
+    const visited = [];
+    const parent = [];
+    for (let y = 0; y < GRID_SIZE; y++) {
+      visited[y] = [];
+      parent[y] = [];
+      for (let x = 0; x < GRID_SIZE; x++) {
+        visited[y][x] = false;
+        parent[y][x] = null;
       }
     }
-  }
 
-  function bfsPath(startX, startY, targetX, targetY) {
-    if (startX === targetX && startY === targetY) return [];
-    const queue = [{ x: startX, y: startY }];
-    const visited = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(false));
-    const parent = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(null));
-    visited[startY][startX] = true;
-
-    const dirs = [
-      { dx: 0, dy: -1 },
-      { dx: 0, dy: 1 },
-      { dx: -1, dy: 0 },
-      { dx: 1, dy: 0 }
-    ];
-
-    let found = false;
+    const queue = [{ x: sx, y: sy }];
+    visited[sy][sx] = true;
     let head = 0;
+    let found = false;
 
     while (head < queue.length && !found) {
-      const cur = queue[head++];
-      for (let d of dirs) {
-        const nx = cur.x + d.dx;
-        const ny = cur.y + d.dy;
-        if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) continue;
-        if (visited[ny][nx]) continue;
-        if (map[ny][nx] === TILE.WALL) continue;
+      const cur = queue[head];
+      head++;
+      const nbs = [
+        { x: cur.x, y: cur.y - 1 },
+        { x: cur.x, y: cur.y + 1 },
+        { x: cur.x - 1, y: cur.y },
+        { x: cur.x + 1, y: cur.y }
+      ];
+      for (let k = 0; k < nbs.length; k++) {
+        const n = nbs[k];
+        if (n.x < 0 || n.x >= GRID_SIZE || n.y < 0 || n.y >= GRID_SIZE) continue;
+        if (visited[n.y][n.x]) continue;
+        if (map[n.y][n.x] === WALL) continue;
 
-        visited[ny][nx] = true;
-        parent[ny][nx] = { x: cur.x, y: cur.y };
-        queue.push({ x: nx, y: ny });
+        visited[n.y][n.x] = true;
+        parent[n.y][n.x] = { x: cur.x, y: cur.y };
+        queue.push(n);
 
-        if (nx === targetX && ny === targetY) {
+        if (n.x === tx && n.y === ty) {
           found = true;
           break;
         }
@@ -409,20 +376,19 @@ map      for (let x = 0; x < GRID_SIZE; x++) {
     if (!found) return null;
 
     const path = [];
-    let cur = { x: targetX, y: targetY };
-    while (cur) {
-      path.unshift(cur);
-      const p = parent[cur.y][cur.x];
-      if (!p) break;
-      cur = p;
+    let cx = tx;
+    let cy = ty;
+    while (!(cx === sx && cy === sy)) {
+      path.unshift({ x: cx, y: cy });
+      const p = parent[cy][cx];
+      if (!p) return null;
+      cx = p.x;
+      cy = p.y;
     }
-
-    return path.length > 1 ? path.slice(1) : null;
+    return path.length > 0 ? path : null;
   }
 
-  let monsterMoveTimer = 0;
-  const MONSTER_MOVE_INTERVAL = 26;   // 数字越大怪物越慢（原来14）
-
+  // ============ 怪物更新 ============
   function updateMonsters() {
     if (gameState !== 'playing') return;
 
@@ -430,17 +396,15 @@ map      for (let x = 0; x < GRID_SIZE; x++) {
     if (monsterMoveTimer < MONSTER_MOVE_INTERVAL) return;
     monsterMoveTimer = 0;
 
-    for (let m of monsters) {
+    for (let i = 0; i < monsters.length; i++) {
+      const m = monsters[i];
       m.repathTimer++;
-      const dist = Math.abs(m.x - player.x) + Math.abs(m.y - player.y);
 
-      // 只有距离较近（<=6格）时才会追踪玩家；否则随机游走
+      const dist = Math.abs(m.x - player.x) + Math.abs(m.y - player.y);
       const canChase = dist <= 6;
 
-      // 重寻路间隔拉长：约每 30 帧才重新计算一次，且必须能追踪
       if (canChase && (m.repathTimer > 30 || !m.path)) {
         m.repathTimer = 0;
-        // 只有 60% 概率真的重新算路径
         if (Math.random() < 0.6) {
           const newPath = bfsPath(m.x, m.y, player.x, player.y);
           if (newPath && newPath.length > 0) {
@@ -451,7 +415,6 @@ map      for (let x = 0; x < GRID_SIZE; x++) {
           }
         }
       } else if (!canChase) {
-        // 玩家太远，放弃追踪，随机游走
         m.path = null;
         m.repathTimer = 0;
       }
@@ -471,10 +434,7 @@ map      for (let x = 0; x < GRID_SIZE; x++) {
       }
 
       if (!moved) {
-        // 没有路径时：只有距离玩家较近（<=4格）才直线靠拢，否则随机走
-        const distToPlayer = Math.abs(m.x - player.x) + Math.abs(m.y - player.y);
-
-        if (distToPlayer <= 4) {
+        if (dist <= 4) {
           const dx = Math.sign(player.x - m.x);
           const dy = Math.sign(player.y - m.y);
           if (dx !== 0 && isWalkable(m.x + dx, m.y)) {
@@ -483,19 +443,22 @@ map      for (let x = 0; x < GRID_SIZE; x++) {
             m.y += dy;
           }
         } else {
-          // 随机选一个可行方向走
           const dirs = [
-            { dx: 0, dy: -1 }, { dx: 0, dy: 1 },
-            { dx: -1, dy: 0 }, { dx: 1, dy: 0 }
+            { dx: 0, dy: -1 },
+            { dx: 0, dy: 1 },
+            { dx: -1, dy: 0 },
+            { dx: 1, dy: 0 }
           ];
-          for (let i = dirs.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [dirs[i], dirs[j]] = [dirs[j], dirs[i]];
+          for (let k = dirs.length - 1; k > 0; k--) {
+            const j = Math.floor(Math.random() * (k + 1));
+            const tmp = dirs[k];
+            dirs[k] = dirs[j];
+            dirs[j] = tmp;
           }
-          for (let d of dirs) {
-            if (isWalkable(m.x + d.dx, m.y + d.dy)) {
-              m.x += d.dx;
-              m.y += d.dy;
+          for (let k = 0; k < dirs.length; k++) {
+            if (isWalkable(m.x + dirs[k].dx, m.y + dirs[k].dy)) {
+              m.x += dirs[k].dx;
+              m.y += dirs[k].dy;
               break;
             }
           }
@@ -509,20 +472,19 @@ map      for (let x = 0; x < GRID_SIZE; x++) {
     }
   }
 
+  // ============ 主循环 ============
   function gameLoop() {
     if (moveCooldown > 0) moveCooldown--;
 
     if (gameState === 'playing') {
       if (moveCooldown === 0) {
-        let dx = 0, dy = 0;
+        let dx = 0;
+        let dy = 0;
         if (keys.ArrowUp || touchDir.up) dy = -1;
         else if (keys.ArrowDown || touchDir.down) dy = 1;
         else if (keys.ArrowLeft || touchDir.left) dx = -1;
         else if (keys.ArrowRight || touchDir.right) dx = 1;
-
-        if (dx !== 0 || dy !== 0) {
-          movePlayer(dx, dy);
-        }
+        if (dx !== 0 || dy !== 0) movePlayer(dx, dy);
       }
       updateMonsters();
     }
@@ -531,6 +493,7 @@ map      for (let x = 0; x < GRID_SIZE; x++) {
     requestAnimationFrame(gameLoop);
   }
 
+  // ============ 绘制 ============
   function draw() {
     ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
@@ -540,6 +503,7 @@ map      for (let x = 0; x < GRID_SIZE; x++) {
         const px = x * TILE_SIZE;
         const py = y * TILE_SIZE;
 
+        // 草地
         ctx.fillStyle = '#4a7a4a';
         ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
         ctx.fillStyle = '#5e9c5e';
@@ -548,7 +512,7 @@ map      for (let x = 0; x < GRID_SIZE; x++) {
         ctx.fillStyle = '#3a6a3a';
         ctx.fillRect(px + 12, py + 22, 8, 4);
 
-        if (tile === TILE.WALL) {
+        if (tile === WALL) {
           ctx.fillStyle = '#4a3a2a';
           ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
           ctx.fillStyle = '#2e2218';
@@ -559,7 +523,7 @@ map      for (let x = 0; x < GRID_SIZE; x++) {
           ctx.fillStyle = '#8a7a6a';
           ctx.fillRect(px, py, TILE_SIZE, 2);
           ctx.fillRect(px, py, 2, TILE_SIZE);
-        } else if (tile === TILE.GEM) {
+        } else if (tile === GEM) {
           ctx.shadowColor = '#ffffaa';
           ctx.shadowBlur = 8;
           ctx.fillStyle = '#ffd966';
@@ -583,7 +547,9 @@ map      for (let x = 0; x < GRID_SIZE; x++) {
       }
     }
 
-    monsters.forEach(m => {
+    // 怪物
+    for (let i = 0; i < monsters.length; i++) {
+      const m = monsters[i];
       const px = m.x * TILE_SIZE;
       const py = m.y * TILE_SIZE;
       ctx.fillStyle = '#9b59b6';
@@ -604,15 +570,11 @@ map      for (let x = 0; x < GRID_SIZE; x++) {
       ctx.arc(px + 9, py + 16, 1.5, 0, Math.PI * 2);
       ctx.arc(px + 21, py + 16, 1.5, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = '#e0b0ff';
-      ctx.beginPath();
-      ctx.arc(px + 16 + (m.dir || 1) * 10, py + 22, 3, 0, Math.PI * 2);
-      ctx.fill();
-    });
+    }
 
+    // 玩家
     const ppx = player.x * TILE_SIZE;
     const ppy = player.y * TILE_SIZE;
-
     ctx.fillStyle = '#2e86c1';
     ctx.fillRect(ppx + 8, ppy + 12, 16, 14);
     ctx.fillStyle = '#f1c40f';
@@ -631,81 +593,82 @@ map      for (let x = 0; x < GRID_SIZE; x++) {
     ctx.fillRect(ppx + 8, ppy + 26, 6, 6);
     ctx.fillRect(ppx + 18, ppy + 26, 6, 6);
 
+    // 开始界面
     if (gameState === 'start') {
       ctx.fillStyle = 'rgba(10, 20, 8, 0.8)';
       ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+      ctx.textAlign = 'center';
       ctx.font = 'bold 32px "Courier New", monospace';
       ctx.fillStyle = '#f0f0c0';
-      ctx.shadowColor = '#2a4a2a';
-      ctx.shadowBlur = 12;
-      ctx.textAlign = 'center';
-      ctx.fillText('⚔️ 像素冒险', CANVAS_SIZE / 2, 180);
+      ctx.fillText('像素冒险', CANVAS_SIZE / 2, 180);
       ctx.font = '24px "Courier New", monospace';
       ctx.fillStyle = '#b8e0a0';
       ctx.fillText('收集所有宝石', CANVAS_SIZE / 2, 260);
       ctx.font = '20px "Courier New", monospace';
       ctx.fillStyle = '#ffd966';
       ctx.fillText('点击屏幕开始', CANVAS_SIZE / 2, 340);
-      ctx.shadowBlur = 0;
       ctx.textAlign = 'left';
     } else if (gameState === 'win') {
       ctx.fillStyle = 'rgba(20, 40, 15, 0.9)';
       ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+      ctx.textAlign = 'center';
       ctx.font = 'bold 38px "Courier New", monospace';
       ctx.fillStyle = '#ffd966';
-      ctx.shadowColor = '#8a6e2a';
-      ctx.shadowBlur = 16;
-      ctx.textAlign = 'center';
-      ctx.fillText('✨ 通关！', CANVAS_SIZE / 2, 200);
+      ctx.fillText('通关！', CANVAS_SIZE / 2, 200);
       ctx.font = '26px "Courier New", monospace';
       ctx.fillStyle = '#e0f0b0';
       ctx.fillText('得分: ' + score, CANVAS_SIZE / 2, 280);
       ctx.font = '22px "Courier New", monospace';
       ctx.fillStyle = '#b8e0a0';
       ctx.fillText('点击重新开始', CANVAS_SIZE / 2, 360);
-      ctx.shadowBlur = 0;
       ctx.textAlign = 'left';
     }
   }
 
-  window.addEventListener('keydown', (e) => {
-    if (e.key.startsWith('Arrow')) {
+  // ============ 输入 ============
+  window.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown' ||
+        e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
       e.preventDefault();
       keys[e.key] = true;
     }
   });
-  window.addEventListener('keyup', (e) => {
-    if (e.key.startsWith('Arrow')) {
+  window.addEventListener('keyup', function(e) {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown' ||
+        e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
       e.preventDefault();
       keys[e.key] = false;
     }
   });
 
-  document.querySelectorAll('.dpad-btn').forEach(btn => {
-    const dir = btn.dataset.dir;
-    const press = (e) => {
-      e.preventDefault();
-      if (dir === 'up') touchDir.up = true;
-      if (dir === 'down') touchDir.down = true;
-      if (dir === 'left') touchDir.left = true;
-      if (dir === 'right') touchDir.right = true;
-    };
-    const release = (e) => {
-      e.preventDefault();
-      if (dir === 'up') touchDir.up = false;
-      if (dir === 'down') touchDir.down = false;
-      if (dir === 'left') touchDir.left = false;
-      if (dir === 'right') touchDir.right = false;
-    };
-    btn.addEventListener('mousedown', press);
-    btn.addEventListener('mouseup', release);
-    btn.addEventListener('mouseleave', release);
-    btn.addEventListener('touchstart', press, { passive: false });
-    btn.addEventListener('touchend', release, { passive: false });
-    btn.addEventListener('touchcancel', release, { passive: false });
-  });
+  const dpadBtns = document.querySelectorAll('.dpad-btn');
+  for (let i = 0; i < dpadBtns.length; i++) {
+    (function(btn) {
+      const dir = btn.getAttribute('data-dir');
+      function press(e) {
+        e.preventDefault();
+        if (dir === 'up') touchDir.up = true;
+        if (dir === 'down') touchDir.down = true;
+        if (dir === 'left') touchDir.left = true;
+        if (dir === 'right') touchDir.right = true;
+      }
+      function release(e) {
+        e.preventDefault();
+        if (dir === 'up') touchDir.up = false;
+        if (dir === 'down') touchDir.down = false;
+        if (dir === 'left') touchDir.left = false;
+        if (dir === 'right') touchDir.right = false;
+      }
+      btn.addEventListener('mousedown', press);
+      btn.addEventListener('mouseup', release);
+      btn.addEventListener('mouseleave', release);
+      btn.addEventListener('touchstart', press, { passive: false });
+      btn.addEventListener('touchend', release, { passive: false });
+      btn.addEventListener('touchcancel', release, { passive: false });
+    })(dpadBtns[i]);
+  }
 
-  canvas.addEventListener('click', () => {
+  function startOrRestart() {
     if (gameState === 'start') {
       gameState = 'playing';
       moveCooldown = 0;
@@ -713,27 +676,16 @@ map      for (let x = 0; x < GRID_SIZE; x++) {
     } else if (gameState === 'win') {
       resetGame();
       gameState = 'playing';
-      moveCooldown = 0;
-      monsterMoveTimer = 0;
     }
-  });
+  }
 
-  canvas.addEventListener('touchstart', (e) => {
+  canvas.addEventListener('click', startOrRestart);
+  canvas.addEventListener('touchstart', function(e) {
     e.preventDefault();
-    if (gameState === 'start' || gameState === 'win') {
-      if (gameState === 'start') {
-        gameState = 'playing';
-        moveCooldown = 0;
-        monsterMoveTimer = 0;
-      } else if (gameState === 'win') {
-        resetGame();
-        gameState = 'playing';
-        moveCooldown = 0;
-        monsterMoveTimer = 0;
-      }
-    }
+    startOrRestart();
   }, { passive: false });
 
+  // ============ 启动 ============
   resetGame();
   gameLoop();
 })();
