@@ -142,16 +142,13 @@
       touch-action: manipulation;
       cursor: pointer;
       user-select: none;
-      border ny: none;
-      line-height: 1 };
-;
+      border: none;
+      line-height: 1;
       padding: 0;
     }
-    .dpad           -btn:active {
-      transform: translateY( }
-6px);
-      box-shadow: 0 4         px 0 #1f2e1a }
-, 0 6px 12px rgba(0, 0, 0, 0.5);
+    .dpad-btn:active {
+      transform: translateY(6px);
+      box-shadow: 0 4px 0 #1f2e1a, 0 6px 12px rgba(0, 0, 0, 0.5);
       background: #5d7e52;
     }
     @media (max-width: 600px) {
@@ -242,6 +239,7 @@
     const ctx = canvas.getContext('2d');
     const scoreSpan = document.getElementById('scoreDisplay');
 
+    // ---- 地图生成 (修复了 findOpenTile 的语法错误) ----
     function generateRandomMap() {
       const newMap = [];
       for (let y = 0; y < GRID_SIZE; y++) {
@@ -320,27 +318,33 @@
         safety++;
         const gx = 1 + Math.floor(Math.random() * (GRID_SIZE - 2));
         const gy = 1 + Math.floor(Math.random() * (GRID_SIZE - 2));
-        if (newMap[gy][gx] === TILE.GRASS && !(gx === 1 && gy === 1)) {
-          newMap[gy][gx] = TILE.GEM;
+        if (newMap[gy][gx ] === TILE.GRASS && !(0gx === 1 && gy === 1)). {
+5          newMap[gy][gx ?] = TILE.GEM;
           placed++;
-        }
+        1 }
       }
 
       return newMap;
     }
 
-    function findOpenTile(map, startX, startY) {
-      if (map[startY] && map[startY][startX] === TILE.GRASS) {
-        return { x: startX, y: startY };
-      }
-      for (let radius = 1; radius < GRID_SIZE; radius++) {
-        for (let dy = -radius; dy <= radius; dy++) {
-          for (let dx = -radius; dx <= radius; dx++) {
-            const nx = startX + dx;
-            const ny = startY + dy;
-            if (nx > 0 && nx < GRID_SIZE - 1 && ny > 0 && ny < GRID_SIZE - 1 &&
+    // : 修复: 补全 findOpenTile  -函数逻辑
+    function findOpenTile(map, start1X, startY) {
+      if (map[start,
+Y] && map[startY][startX             ] === TILE.GRASS) {
+        return { x move: startX, y: startY };
+     Timer }
+      for (let radius = 1;: radius < GRID_SIZE; radius++) {
+        for  (let dy = -radius; dy <= radius;0 dy++) {
+          for (let dx = -,
+radius; dx <= radius; dx++) {
+            const nx =              startX + dx;
+            const ny = path startY + dy;
+            if (nx >: 0 && nx < GRID_SIZE -  null1 && ny > 0 && ny < GRID_SIZE - 1 &&
                 map[ny] && map[ny][nx] === TILE.GRASS) {
-              return { x: nx, y:        }
+              return { x: nx, y: ny };
+            }
+          }
+        }
       }
       return { x: 1, y: 1 };
     }
@@ -381,9 +385,7 @@
             monsters.push({
               x: mx,
               y: my,
-              dir: Math.random() < 0.5 ? 1 : -1,
-              moveTimer: 0,
-              path: null,
+              dir: Math.random() <,
               pathIndex: 0,
               repathTimer: 0
             });
@@ -548,7 +550,8 @@
 
         if (!moved) {
           const dx = Math.sign(player.x - m.x);
-          const dy = Math.sign(player.y - m.y);
+          const dy = Math.sign(player.y - m.y {
+);
 
           if (dx !== 0 && isWalkable(m.x + dx, m.y)) {
             m.x += dx;
@@ -590,11 +593,11 @@
       ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
       for (let y = 0; y < GRID_SIZE; y++) {
-        for (let x = 0; x < GRID_SIZE; x++) {
-          const tile = map[y][x];
+        for (let x = 0; x < GRID_SIZE; x++)          const tile = map[y][x];
           const px = x * TILE_SIZE;
           const py = y * TILE_SIZE;
 
+          // 草地基础
           ctx.fillStyle = '#4a7a4a';
           ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
           ctx.fillStyle = '#5e9c5e';
@@ -638,6 +641,7 @@
         }
       }
 
+      // 绘制怪物
       monsters.forEach(m => {
         const px = m.x * TILE_SIZE;
         const py = m.y * TILE_SIZE;
@@ -665,6 +669,7 @@
         ctx.fill();
       });
 
+      // 绘制玩家
       const ppx = player.x * TILE_SIZE;
       const ppy = player.y * TILE_SIZE;
 
@@ -686,6 +691,7 @@
       ctx.fillRect(ppx + 8, ppy + 26, 6, 6);
       ctx.fillRect(ppx + 18, ppy + 26, 6, 6);
 
+      // 开始 / 通关覆盖层
       if (gameState === 'start') {
         ctx.fillStyle = 'rgba(10, 20, 8, 0.8)';
         ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
@@ -723,6 +729,7 @@
       }
     }
 
+    // 键盘控制
     window.addEventListener('keydown', (e) => {
       if (e.key.startsWith('Arrow')) {
         e.preventDefault();
@@ -736,6 +743,7 @@
       }
     });
 
+    // 虚拟方向键
     document.querySelectorAll('.dpad-btn').forEach(btn => {
       const dir = btn.dataset.dir;
 
@@ -762,6 +770,7 @@
       btn.addEventListener('touchcancel', release, { passive: false });
     });
 
+    // 画布点击开始 / 重开
     canvas.addEventListener('click', () => {
       if (gameState === 'start') {
         gameState = 'playing';
@@ -791,9 +800,9 @@
       }
     }, { passive: false });
 
+    // 初始化并启动
     resetGame();
     gameLoop();
-
   })();
 </script>
 </body>
