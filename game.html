@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>像素冒险 · 宝石与巡逻怪</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #1a2c1e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Courier New', Courier, monospace;
+      padding: 12px;
+    }
+    .game-wrapper {
+      background: #2d3e2b;
+      padding: 20px 20px 24px;
+      border-radius: 32px;
+      box-shadow: 0 12px 0 #0f1a0e, 0 16px 24px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      border-radius: 16px;
+      background: #3a5a3a;
+      box-shadow: inset 0 0 0 4px #1e2e1c, 0 8px 0 #0f1a0e;
+      cursor: crosshair;
+      max-width: 600px;
+      touch-action: none;
+    }
+    .hud {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 12px 0 8px;
+      color: #e0f0c0;
+      text-shadow: 2px 2px 0 #0f1a0e;
+      font-size: 1.5rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      padding: 0 8px;
+    }
+    .score {
+      background: #1e2e1c;
+      padding: 6px 20px;
+      border-radius: 30px;
+      box-shadow: inset 0 -4px 0 #0b130a, 0 4px 0 #0b130a;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .score span {
+      color: #ffd966;
+      font-size: 1.8rem;
+      line-height: 1;
+    }
+    .controls-hint {
+      color: #8faa7a;
+      font-size: 1rem;
+      font-weight: bold;
+      display: flex;
+      gap: 12px;
+      background: #1e2e1c;
+      padding: 6px 16px;
+      border-radius: 30px;
+      box-shadow: inset 0 -3px 0 #0b130a;
+    }
+    .dpad {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 16px;
+      gap: 8px;
+      width: 100%;
+    }
+    .dpad-row {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+    }
+    .dpad-btn {
+      background: #4a6741;
+      width: 80px;
+      height: 80px;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.4rem;
+      font-weight: bold;
+      color: #d4e8b0;
+      text-shadow: 4px 4px 0 #1f2e1a;
+      box-shadow: 0 10px 0 #1f2e1a, 0 6px 12px rgba(0, 0, 0, 0.5);
+      transition: all 0.05s ease;
+      touch-action: manipulation;
+      cursor: pointer;
+      user-select: none;
+      border: none;
+      line-height: 1;
+      padding: 0;
+    }
+    .dpad-btn:active {
+      transform: translateY(6px);
+      box-shadow: 0 4px 0 #1f2e1a, 0 6px 12px rgba(0, 0, 0, 0.5);
+      background: #5d7e52;
+    }
+    @media (max-width: 600px) {
+      .dpad-btn {
+        width: 70px;
+        height: 70px;
+        font-size: 2.8rem;
+        border-radius: 20px;
+      }
+      .hud {
+        font-size: 1.2rem;
+      }
+      .score span {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="game-wrapper">
+  <div class="hud">
+    <div class="score">💎 <span id="scoreDisplay">0</span></div>
+    <div class="controls-hint">←↑↓→</div>
+  </div>
+
+  <canvas id="gameCanvas" width="480" height="480"></canvas>
+
+  <div class="dpad">
+    <div class="dpad-row">
+      <button class="dpad-btn" data-dir="up">▲</button>
+    </div>
+    <div class="dpad-row">
+      <button class="dpad-btn" data-dir="left">◀</button>
+      <button class="dpad-btn" data-dir="down">▼</button>
+      <button class="dpad-btn" data-dir="right">▶</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const CANVAS_SIZE = 480;
+    const TILE_SIZE = 32;
+    const GRID_SIZE = CANVAS_SIZE / TILE_SIZE;
+
+    const TILE = {
+      GRASS: 0,
+      WALL: 1,
+      GEM: 2,
+    };
+
+    const PLAYER_START = { x: 1, y: 1 };
+
+    const MONSTER_STARTS = [
+      { x: 13, y: 13, dir: 1 },
+      { x: 7, y: 7, dir: 1 },
+      { x: 3, y: 11, dir: -1 }
+    ];
+
+    const STATIC_MAP = [
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
+      [1,0,1,1,0,0,1,0,1,1,1,1,0,0,1],
+      [1,0,1,2,0,0,0,0,0,2,1,0,0,0,1],
+      [1,0,0,0,0,1,1,0,0,0,1,0,1,0,1],
+      [1,0,1,0,0,0,0,0,1,0,1,0,1,0,1],
+      [1,0,1,2,1,1,0,1,1,0,0,0,1,0,1],
+      [1,0,0,0,0,0,0,0,1,0,1,1,1,0,1],
+      [1,0,1,0,1,1,1,0,1,0,0,0,0,0,1],
+      [1,0,1,0,0,0,1,0,0,0,1,1,0,0,1],
+      [1,0,1,0,1,2,1,0,1,1,1,0,0,0,1],
+      [1,0,0,0,1,0,0,0,1,0,0,0,1,0,1],
+      [1,0,1,1,1,0,1,0,0,0,1,0,1,0,1],
+      [1,0,0,0,0,0,1,0,1,0,0,0,0,2,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    ];
+
+    let gameState = 'start';
+    let score = 0;
+    let map = [];
+    let player = { x: PLAYER_START.x, y: PLAYER_START.y };
+    let monsters = [];
+    let gemsRemaining = 0;
+    let totalGems = 0;
+
+    const keys = {
+      ArrowUp: false,
+      ArrowDown: false,
+      ArrowLeft: false,
+      ArrowRight: false
+    };
+
+    const touchDir = {
+      up: false,
+      down: false,
+      left: false,
+      right: false
+    };
+
+    let moveCooldown = 0;
+    const MOVE_COOLDOWN_MAX = 10;
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreSpan = document.getElementById('scoreDisplay');
+
+    function resetGame() {
+      map = STATIC_MAP.map(row => [...row]);
+
+      if (map[3][13] === TILE.GRASS) map[3][13] = TILE.GEM;
+      if (map[5][5] === TILE.GRASS) map[5][5] = TILE.GEM;
+      if (map[11][12] === TILE.GRASS) map[11][12] = TILE.GEM;
+
+      totalGems = 0;
+      for (let y = 0; y < GRID_SIZE; y++) {
+        for (let x = 0; x < GRID_SIZE; x++) {
+          if (map[y][x] === TILE.GEM) totalGems++;
+        }
+      }
+      gemsRemaining = totalGems;
+
+      player.x = PLAYER_START.x;
+      player.y = PLAYER_START.y;
+
+      monsters = MONSTER_STARTS.map(m => ({
+        x: m.x,
+        y: m.y,
+        dir: m.dir
+      }));
+
+      score = 0;
+      updateScoreUI();
+      moveCooldown = 0;
+      gameState = 'start';
+    }
+
+    function updateScoreUI() {
+      scoreSpan.textContent = score;
+    }
+
+    function isWalkable(x, y) {
+      if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return false;
+      return map[y][x] !== TILE.WALL;
+    }
+
+    function movePlayer(dx, dy) {
+      if (gameState !== 'playing') return;
+      if (moveCooldown > 0) return;
+
+      const newX = player.x + dx;
+      const newY = player.y + dy;
+
+      if (!isWalkable(newX, newY)) return;
+
+      player.x = newX;
+      player.y = newY;
+
+      if (map[newY][newX] === TILE.GEM) {
+        map[newY][newX] = TILE.GRASS;
+        score += 10;
+        gemsRemaining--;
+        updateScoreUI();
+
+        if (gemsRemaining === 0) {
+          gameState = 'win';
+        }
+      }
+
+      checkMonsterCollision();
+
+      moveCooldown = MOVE_COOLDOWN_MAX;
+    }
+
+    function checkMonsterCollision() {
+      for (let m of monsters) {
+        if (m.x === player.x && m.y === player.y) {
+          resetGame();
+          break;
+        }
+      }
+    }
+
+    let monsterMoveTimer = 0;
+    const MONSTER_MOVE_INTERVAL = 20;
+
+    function updateMonsters() {
+      if (gameState !== 'playing') return;
+
+      monsterMoveTimer++;
+      if (monsterMoveTimer < MONSTER_MOVE_INTERVAL) return;
+      monsterMoveTimer = 0;
+
+      for (let m of monsters) {
+        let newX = m.x + m.dir;
+        if (isWalkable(newX, m.y)) {
+          m.x = newX;
+        } else {
+          m.dir *= -1;
+          let altX = m.x + m.dir;
+          if (isWalkable(altX, m.y)) {
+            m.x = altX;
+          }
+        }
+      }
+
+      checkMonsterCollision();
+    }
+
+    function gameLoop() {
+      if (moveCooldown > 0) moveCooldown--;
+
+      if (gameState === 'playing') {
+        if (moveCooldown === 0) {
+          let dx = 0, dy = 0;
+          if (keys.ArrowUp || touchDir.up) dy = -1;
+          else if (keys.ArrowDown || touchDir.down) dy = 1;
+          else if (keys.ArrowLeft || touchDir.left) dx = -1;
+          else if (keys.ArrowRight || touchDir.right) dx = 1;
+
+          if (dx !== 0 || dy !== 0) {
+            movePlayer(dx, dy);
+          }
+        }
+        updateMonsters();
+      }
+
+      draw();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+      for (let y = 0; y < GRID_SIZE; y++) {
+        for (let x = 0; x < GRID_SIZE; x++) {
+          const tile = map[y][x];
+          const px = x * TILE_SIZE;
+          const py = y * TILE_SIZE;
+
+          ctx.fillStyle = '#4a7a4a';
+          ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+          ctx.fillStyle = '#5e9c5e';
+          ctx.fillRect(px + 4, py + 4, 6, 6);
+          ctx.fillRect(px + 20, py + 12, 6, 6);
+          ctx.fillStyle = '#3a6a3a';
+          ctx.fillRect(px + 12, py + 22, 8, 4);
+
+          if (tile === TILE.WALL) {
+            ctx.fillStyle = '#4a3a2a';
+            ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+            ctx.fillStyle = '#2e2218';
+            ctx.fillRect(px + 4, py + 4, 24, 8);
+            ctx.fillRect(px + 4, py + 20, 24, 8);
+            ctx.fillStyle = '#6a5a4a';
+            ctx.fillRect(px + 4, py + 14, 24, 4);
+            ctx.fillStyle = '#8a7a6a';
+            ctx.fillRect(px, py, TILE_SIZE, 2);
+            ctx.fillRect(px, py, 2, TILE_SIZE);
+          } else if (tile === TILE.GEM) {
+            ctx.shadowColor = '#ffffaa';
+            ctx.shadowBlur = 8;
+            ctx.fillStyle = '#ffd966';
+            ctx.beginPath();
+            ctx.moveTo(px + 16, py + 6);
+            ctx.lineTo(px + 26, py + 16);
+            ctx.lineTo(px + 16, py + 26);
+            ctx.lineTo(px + 6, py + 16);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#ffeeaa';
+            ctx.beginPath();
+            ctx.moveTo(px + 16, py + 10);
+            ctx.lineTo(px + 22, py + 16);
+            ctx.lineTo(px + 16, py + 22);
+            ctx.lineTo(px + 10, py + 16);
+            ctx.closePath();
+            ctx.fill();
+            ctx.shadowBlur = 0;
+          }
+        }
+      }
+
+      monsters.forEach(m => {
+        const px = m.x * TILE_SIZE;
+        const py = m.y * TILE_SIZE;
+        ctx.fillStyle = '#9b59b6';
+        ctx.beginPath();
+        ctx.ellipse(px + 16, py + 18, 12, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#b07cc6';
+        ctx.beginPath();
+        ctx.ellipse(px + 12, py + 14, 5, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(px + 10, py + 16, 3, 0, Math.PI * 2);
+        ctx.arc(px + 22, py + 16, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#2c1e2e';
+        ctx.beginPath();
+        ctx.arc(px + 9, py + 16, 1.5, 0, Math.PI * 2);
+        ctx.arc(px + 21, py + 16, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#e0b0ff';
+        ctx.beginPath();
+        ctx.arc(px + 16 + m.dir * 10, py + 22, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      const ppx = player.x * TILE_SIZE;
+      const ppy = player.y * TILE_SIZE;
+
+      ctx.fillStyle = '#2e86c1';
+      ctx.fillRect(ppx + 8, ppy + 12, 16, 14);
+      ctx.fillStyle = '#f1c40f';
+      ctx.beginPath();
+      ctx.arc(ppx + 16, ppy + 10, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#1e2a3a';
+      ctx.beginPath();
+      ctx.arc(ppx + 13, ppy + 8, 2, 0, Math.PI * 2);
+      ctx.arc(ppx + 19, ppy + 8, 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#e67e22';
+      ctx.fillRect(ppx + 8, ppy + 2, 16, 6);
+      ctx.fillRect(ppx + 12, ppy, 8, 4);
+      ctx.fillStyle = '#5d4e3a';
+      ctx.fillRect(ppx + 8, ppy + 26, 6, 6);
+      ctx.fillRect(ppx + 18, ppy + 26, 6, 6);
+
+      if (gameState === 'start') {
+        ctx.fillStyle = 'rgba(10, 20, 8, 0.8)';
+        ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+        ctx.font = 'bold 32px "Courier New", monospace';
+        ctx.fillStyle = '#f0f0c0';
+        ctx.shadowColor = '#2a4a2a';
+        ctx.shadowBlur = 12;
+        ctx.textAlign = 'center';
+        ctx.fillText('⚔️ 像素冒险', CANVAS_SIZE / 2, 180);
+        ctx.font = '24px "Courier New", monospace';
+        ctx.fillStyle = '#b8e0a0';
+        ctx.fillText('收集所有宝石', CANVAS_SIZE / 2, 260);
+        ctx.font = '20px "Courier New", monospace';
+        ctx.fillStyle = '#ffd966';
+        ctx.fillText('点击屏幕开始', CANVAS_SIZE / 2, 340);
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'left';
+      } else if (gameState === 'win') {
+        ctx.fillStyle = 'rgba(20, 40, 15, 0.9)';
+        ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+        ctx.font = 'bold 38px "Courier New", monospace';
+        ctx.fillStyle = '#ffd966';
+        ctx.shadowColor = '#8a6e2a';
+        ctx.shadowBlur = 16;
+        ctx.textAlign = 'center';
+        ctx.fillText('✨ 通关！', CANVAS_SIZE / 2, 200);
+        ctx.font = '26px "Courier New", monospace';
+        ctx.fillStyle = '#e0f0b0';
+        ctx.fillText('得分: ' + score, CANVAS_SIZE / 2, 280);
+        ctx.font = '22px "Courier New", monospace';
+        ctx.fillStyle = '#b8e0a0';
+        ctx.fillText('点击重新开始', CANVAS_SIZE / 2, 360);
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'left';
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key.startsWith('Arrow')) {
+        e.preventDefault();
+        keys[e.key] = true;
+      }
+    });
+    window.addEventListener('keyup', (e) => {
+      if (e.key.startsWith('Arrow')) {
+        e.preventDefault();
+        keys[e.key] = false;
+      }
+    });
+
+    document.querySelectorAll('.dpad-btn').forEach(btn => {
+      const dir = btn.dataset.dir;
+
+      const press = (e) => {
+        e.preventDefault();
+        if (dir === 'up') touchDir.up = true;
+        if (dir === 'down') touchDir.down = true;
+        if (dir === 'left') touchDir.left = true;
+        if (dir === 'right') touchDir.right = true;
+      };
+      const release = (e) => {
+        e.preventDefault();
+        if (dir === 'up') touchDir.up = false;
+        if (dir === 'down') touchDir.down = false;
+        if (dir === 'left') touchDir.left = false;
+        if (dir === 'right') touchDir.right = false;
+      };
+
+      btn.addEventListener('mousedown', press);
+      btn.addEventListener('mouseup', release);
+      btn.addEventListener('mouseleave', release);
+      btn.addEventListener('touchstart', press, { passive: false });
+      btn.addEventListener('touchend', release, { passive: false });
+      btn.addEventListener('touchcancel', release, { passive: false });
+    });
+
+    canvas.addEventListener('click', (e) => {
+      if (gameState === 'start') {
+        gameState = 'playing';
+        moveCooldown = 0;
+        monsterMoveTimer = 0;
+      } else if (gameState === 'win') {
+        resetGame();
+        gameState = 'playing';
+        moveCooldown = 0;
+        monsterMoveTimer = 0;
+      }
+    });
+
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      if (gameState === 'start' || gameState === 'win') {
+        if (gameState === 'start') {
+          gameState = 'playing';
+          moveCooldown = 0;
+          monsterMoveTimer = 0;
+        } else if (gameState === 'win') {
+          resetGame();
+          gameState = 'playing';
+          moveCooldown = 0;
+          monsterMoveTimer = 0;
+        }
+      }
+    }, { passive: false });
+
+    resetGame();
+    gameLoop();
+
+  })();
+</script>
+</body>
+</html>
