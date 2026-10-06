@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的游戏库</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, sans-serif;
+        }
+        body {
+            /* 淡冷色调背景 */
+            background-color: #edf4fb;
+            color: #2c3e50;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            /* 页面淡入效果 */
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h1 {
+            color: #345b82;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        .game-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 24px;
+            max-width: 700px;
+            width: 100%;
+        }
+        .game-btn {
+            padding: 20px 12px;
+            background: linear-gradient(135deg, #b8d4ee, #98bedc);
+            border: none;
+            border-radius: 14px;
+            font-size: 18px;
+            color: #1f3a52;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 4px 10px #c2d8ec;
+            transition: all 0.3s ease;
+        }
+        .game-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 18px #b0cbe3;
+            background: linear-gradient(135deg, #a9cbe8, #86b2d6);
+        }
+        .game-btn:active {
+            transform: translateY(2px);
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 我的游戏库</h1>
+    <div class="game-container">
+        <!-- 修改href里的文件名，对应你的游戏页面 -->
+        <a href="game1.html">
+            <button class="game-btn">游戏 1</button>
+        </a>
+        <a href="game2.html">
+            <button class="game-btn">游戏 2</button>
+        </a>
+        <a href="game3.html">
+            <button class="game-btn">游戏 3</button>
+        </a>
+        <a href="game4.html">
+            <button class="game-btn">游戏 4</button>
+        </a>
+    </div>
+</body>
+</html>
