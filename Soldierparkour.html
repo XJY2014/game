@@ -28,6 +28,38 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      position: relative;
+    }
+    .top-bar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 12px;
+    }
+    .back-btn {
+      background: #3a4258;
+      color: #d4e8b0;
+      border: none;
+      border-radius: 14px;
+      padding: 10px 18px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #1a1e2c;
+      transition: all 0.05s ease;
+      letter-spacing: 1px;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .back-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 #1a1e2c;
+    }
+    .back-btn:hover {
+      background: #4a5470;
     }
     canvas {
       display: block;
@@ -125,17 +157,25 @@
       .score span {
         font-size: 1.5rem;
       }
+      .back-btn {
+        font-size: 0.9rem;
+        padding: 8px 14px;
+      }
     }
   </style>
 </head>
 <body>
 <div class="game-wrapper">
-  <div class="hud">
+  <div class="top-bar">
+    <a class="back-btn" href="https://XJY2014.github.io/game/index.html">← 返回</a>
     <div class="score">💥 距离 <span id="scoreDisplay">0</span></div>
-    <div class="controls-hint">空格/↑跳跃 ↓下滑</div>
   </div>
 
   <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+  <div class="hud">
+    <div class="controls-hint">空格/↑跳跃 ↓下滑</div>
+  </div>
 
   <div class="action-btns">
     <button class="action-btn" id="jumpBtn">⬆ 跳跃</button>
@@ -187,9 +227,9 @@
     let spawnTimer = 0;
     let missileSpawnTimer = 0;
     let missileActive = false;
+    let runCycle = 0;
 
     const keys = { jump: false, duck: false };
-    let jumpPressed = false;
 
     function resetGame() {
       gameState = 'playing';
@@ -213,6 +253,7 @@
       missileSpawnTimer = 0;
       spawnTimer = 0;
       frameCount = 0;
+      runCycle = 0;
       updateScoreUI();
       initClouds();
     }
@@ -370,6 +411,7 @@
       if (gameState !== 'playing') return;
 
       frameCount++;
+      runCycle += 0.25;
 
       distance += speed;
       speed = Math.min(12, 5 + distance / 2000);
@@ -555,61 +597,156 @@
       }
     }
 
-    function drawPlayer() {
-      const px = PLAYER_X;
-      const py = player.isDucking ? GROUND_Y - player.duckH : player.y - player.h;
-      const ph = player.isDucking ? player.duckH : player.h;
-      const pw = player.w;
+    function drawIDFSoldier(px, py, isDucking, isJumping, cycle) {
+      const pw = 36;
+      const bodyH = isDucking ? 26 : 40;
+
+      ctx.save();
 
       if (gameState === 'gameover') {
-        ctx.globalAlpha = 0.5;
+        ctx.globalAlpha = 0.45;
       }
 
-      if (player.isDucking) {
-        ctx.fillStyle = '#4a5a3a';
-        ctx.fillRect(px, py + 10, pw, ph - 10);
-        ctx.fillStyle = '#3a4a2a';
-        ctx.fillRect(px + 4, py + 4, pw - 8, 12);
-        ctx.fillStyle = '#f1c40f';
+      if (isDucking) {
+        ctx.fillStyle = '#3a4a30';
+        ctx.fillRect(px + 4, py + 18, 10, 8);
+        ctx.fillRect(px + 20, py + 18, 10, 8);
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(px + 2, py + 24, 14, 6);
+        ctx.fillRect(px + 20, py + 24, 14, 6);
+
+        ctx.fillStyle = '#5a6b3a';
+        ctx.fillRect(px + 6, py + 6, pw - 12, 14);
+        ctx.fillStyle = '#4a5a2a';
+        ctx.fillRect(px + 8, py + 8, pw - 16, 10);
+        ctx.fillStyle = '#3a4a20';
+        ctx.fillRect(px + 10, py + 10, 6, 6);
+        ctx.fillRect(px + 20, py + 10, 6, 6);
+
+        ctx.fillStyle = '#5a6b3a';
+        ctx.fillRect(px - 2, py + 8, 10, 6);
+        ctx.fillRect(px + pw - 8, py + 8, 10, 6);
+
+        ctx.fillStyle = '#4a5a2a';
         ctx.beginPath();
-        ctx.arc(px + pw / 2 + 6, py + 8, 10, 0, Math.PI * 2);
+        ctx.arc(px + pw / 2 + 2, py + 4, 12, Math.PI, 0);
         ctx.fill();
-        ctx.fillStyle = '#1e2a3a';
+        ctx.fillRect(px + pw / 2 - 10, py + 2, 24, 6);
+        ctx.strokeStyle = '#3a4a1a';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 5; i++) {
+          ctx.beginPath();
+          ctx.moveTo(px + pw / 2 - 10 + i * 6, py + 2);
+          ctx.lineTo(px + pw / 2 - 6 + i * 6, py + 8);
+          ctx.stroke();
+        }
+        ctx.fillStyle = '#e0b080';
         ctx.beginPath();
-        ctx.arc(px + pw / 2 + 9, py + 6, 2.5, 0, Math.PI * 2);
+        ctx.arc(px + pw / 2 + 8, py + 6, 5, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = '#2d6a2d';
-        ctx.fillRect(px - 2, py + 12, 8, 6);
-        ctx.fillRect(px + pw - 6, py + 12, 8, 6);
+        ctx.fillStyle = '#1a1a1a';
+        ctx.beginPath();
+        ctx.arc(px + pw / 2 + 10, py + 5, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
       } else {
-        ctx.fillStyle = '#4a5a3a';
-        ctx.fillRect(px + 6, py + 20, pw - 12, 28);
-        ctx.fillStyle = '#3a4a2a';
-        ctx.fillRect(px + 4, py + 10, pw - 8, 14);
-        ctx.fillStyle = '#f1c40f';
+        const swing = isJumping ? 0 : Math.sin(cycle) * 8;
+        const legSwing = isJumping ? 0 : Math.sin(cycle) * 6;
+
+        ctx.fillStyle = '#4a5a30';
+        ctx.fillRect(px + 8 + legSwing, py + bodyH + 6, 9, 18);
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(px + 6 + legSwing, py + bodyH + 22, 14, 6);
+
+        ctx.fillStyle = '#5a6b3a';
+        ctx.fillRect(px + 19 - legSwing, py + bodyH + 6, 9, 18);
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(px + 17 - legSwing, py + bodyH + 22, 14, 6);
+
+        ctx.fillStyle = '#5a6b3a';
+        ctx.fillRect(px + 6, py + 14, pw - 12, bodyH - 8);
+        ctx.fillStyle = '#4a5a2a';
+        ctx.fillRect(px + 8, py + 16, pw - 16, 16);
+        ctx.fillStyle = '#3a4a20';
+        ctx.fillRect(px + 11, py + 18, 6, 8);
+        ctx.fillRect(px + 19, py + 18, 6, 8);
+        ctx.fillStyle = '#2e3a18';
+        ctx.fillRect(px + 8, py + 22, pw - 16, 3);
+
+        ctx.save();
+        ctx.translate(px + 4, py + 18);
+        ctx.rotate(swing * 0.04);
+        ctx.fillStyle = '#4a5a30';
+        ctx.fillRect(-4, 0, 8, 20);
+        ctx.fillStyle = '#e0b080';
         ctx.beginPath();
-        ctx.arc(px + pw / 2 + 4, py + 14, 11, 0, Math.PI * 2);
+        ctx.arc(0, 20, 4, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = '#1e2a3a';
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(px + pw - 6, py + 18);
+        ctx.rotate(-swing * 0.04);
+        ctx.fillStyle = '#5a6b3a';
+        ctx.fillRect(-4, 0, 8, 20);
+        ctx.fillStyle = '#e0b080';
         ctx.beginPath();
-        ctx.arc(px + pw / 2 + 7, py + 12, 3, 0, Math.PI * 2);
+        ctx.arc(0, 20, 4, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = '#5a6a4a';
-        ctx.fillRect(px + 2, py + 44, 12, 16);
-        ctx.fillRect(px + pw - 14, py + 44, 12, 16);
-        ctx.fillStyle = '#2d6a2d';
-        ctx.fillRect(px + 6, py + 46, 6, 16);
-        ctx.fillRect(px + pw - 12, py + 46, 6, 16);
-        ctx.fillStyle = '#4a5a3a';
-        ctx.fillRect(px + pw - 6, py + 24, 10, 20);
+
+        ctx.fillStyle = '#2a2a2a';
+        ctx.fillRect(-2, 14, 22, 5);
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(14, 12, 8, 9);
         ctx.fillStyle = '#333';
-        ctx.fillRect(px + pw - 4, py + 22, 12, 5);
-        ctx.fillRect(px + pw - 4, py + 40, 12, 5);
-        ctx.fillStyle = '#8B6914';
-        ctx.fillRect(px + pw - 8, py + 26, 4, 14);
+        ctx.fillRect(4, 19, 6, 10);
+        ctx.fillStyle = '#444';
+        ctx.fillRect(20, 15, 8, 3);
+        ctx.restore();
+
+        ctx.fillStyle = '#e0b080';
+        ctx.fillRect(px + 14, py + 10, 8, 6);
+
+        ctx.fillStyle = '#e0b080';
+        ctx.beginPath();
+        ctx.arc(px + 20, py + 8, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#4a5a2a';
+        ctx.beginPath();
+        ctx.arc(px + 20, py + 4, 11, Math.PI, 0);
+        ctx.fill();
+        ctx.fillRect(px + 9, py + 2, 22, 6);
+
+        ctx.strokeStyle = '#3a4a1a';
+        ctx.lineWidth = 1.2;
+        for (let i = 0; i < 6; i++) {
+          ctx.beginPath();
+          ctx.moveTo(px + 10 + i * 4, py + 2);
+          ctx.lineTo(px + 14 + i * 4, py + 8);
+          ctx.stroke();
+        }
+        ctx.fillStyle = '#3a4a1a';
+        ctx.fillRect(px + 10, py + 2, 20, 2);
+
+        ctx.fillStyle = '#1a1a1a';
+        ctx.beginPath();
+        ctx.arc(px + 23, py + 6, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(px + pw - 10, py + 26, 6, 5);
+        ctx.fillStyle = '#0038b8';
+        ctx.fillRect(px + pw - 10, py + 27, 6, 1.5);
+        ctx.fillRect(px + pw - 10, py + 29, 6, 1.5);
       }
 
-      ctx.globalAlpha = 1.0;
+      ctx.restore();
+    }
+
+    function drawPlayer() {
+      const py = player.isDucking ? GROUND_Y - player.duckH : player.y - player.h;
+      drawIDFSoldier(PLAYER_X, py, player.isDucking, player.isJumping, runCycle);
     }
 
     function drawParticles() {
