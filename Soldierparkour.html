@@ -5,162 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>士兵跑酷 · 躲避伊朗导弹</title>
   <style>
-    * {
-      box-sizing: border-box;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
+    * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
     body {
-      margin: 0;
-      min-height: 100vh;
-      background: #1a1e2c;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: 'Courier New', Courier, monospace;
-      padding: 12px;
+      margin: 0; min-height: 100vh; background: #1a1e2c;
+      display: flex; justify-content: center; align-items: center;
+      font-family: 'Courier New', Courier, monospace; padding: 12px;
     }
     .game-wrapper {
-      background: #2a2f42;
-      padding: 20px 20px 24px;
-      border-radius: 32px;
-      box-shadow: 0 12px 0 #0f121c, 0 16px 24px rgba(0, 0, 0, 0.7);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
+      background: #2a2f42; padding: 20px 20px 24px; border-radius: 32px;
+      box-shadow: 0 12px 0 #0f121c, 0 16px 24px rgba(0,0,0,0.7);
+      display: flex; flex-direction: column; align-items: center; position: relative;
     }
-    .top-bar {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      gap: 12px;
-    }
+    .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 12px; }
     .back-btn {
-      background: #3a4258;
-      color: #d4e8b0;
-      border: none;
-      border-radius: 14px;
-      padding: 10px 18px;
-      font-family: inherit;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 5px 0 #1a1e2c;
-      transition: all 0.05s ease;
-      letter-spacing: 1px;
-      text-decoration: none;
-      display: inline-block;
+      background: #3a4258; color: #d4e8b0; border: none; border-radius: 14px;
+      padding: 10px 18px; font-family: inherit; font-size: 1rem; font-weight: bold;
+      cursor: pointer; box-shadow: 0 5px 0 #1a1e2c; transition: all 0.05s ease;
+      letter-spacing: 1px; text-decoration: none; display: inline-block;
     }
-    .back-btn:active {
-      transform: translateY(4px);
-      box-shadow: 0 1px 0 #1a1e2c;
-    }
-    .back-btn:hover {
-      background: #4a5470;
-    }
+    .back-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #1a1e2c; }
+    .back-btn:hover { background: #4a5470; }
     canvas {
-      display: block;
-      width: 100%;
-      height: auto;
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
-      border-radius: 16px;
-      background: #87CEEB;
+      display: block; width: 100%; height: auto;
+      image-rendering: pixelated; image-rendering: crisp-edges;
+      border-radius: 16px; background: #87CEEB;
       box-shadow: inset 0 0 0 4px #1e2430, 0 8px 0 #0f121c;
-      cursor: pointer;
-      max-width: 800px;
-      touch-action: none;
+      cursor: pointer; max-width: 800px; touch-action: none;
     }
-    .hud {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 12px 0 8px;
-      color: #e0f0c0;
-      text-shadow: 2px 2px 0 #0f121c;
-      font-size: 1.5rem;
-      font-weight: bold;
-      letter-spacing: 2px;
-      padding: 0 8px;
-    }
-    .score {
-      background: #1e2430;
-      padding: 6px 20px;
-      border-radius: 30px;
-      box-shadow: inset 0 -4px 0 #0b0e15, 0 4px 0 #0b0e15;
-      font-size: 1.3rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .score span {
-      color: #ffd966;
-      font-size: 1.8rem;
-      line-height: 1;
-    }
-    .controls-hint {
-      color: #8faa7a;
-      font-size: 1rem;
-      font-weight: bold;
-      display: flex;
-      gap: 12px;
-      background: #1e2430;
-      padding: 6px 16px;
-      border-radius: 30px;
-      box-shadow: inset 0 -3px 0 #0b0e15;
-    }
-    .action-btns {
-      display: flex;
-      gap: 24px;
-      margin-top: 16px;
-      justify-content: center;
-    }
+    .hud { width: 100%; display: flex; justify-content: space-between; align-items: center; margin: 12px 0 8px; color: #e0f0c0; text-shadow: 2px 2px 0 #0f121c; font-size: 1.5rem; font-weight: bold; letter-spacing: 2px; padding: 0 8px; }
+    .score { background: #1e2430; padding: 6px 20px; border-radius: 30px; box-shadow: inset 0 -4px 0 #0b0e15, 0 4px 0 #0b0e15; font-size: 1.3rem; display: flex; align-items: center; gap: 8px; }
+    .score span { color: #ffd966; font-size: 1.8rem; line-height: 1; }
+    .controls-hint { color: #8faa7a; font-size: 1rem; font-weight: bold; display: flex; gap: 12px; background: #1e2430; padding: 6px 16px; border-radius: 30px; box-shadow: inset 0 -3px 0 #0b0e15; }
+    .action-btns { display: flex; gap: 24px; margin-top: 16px; justify-content: center; }
     .action-btn {
-      background: #4a6741;
-      min-width: 120px;
-      height: 70px;
-      border-radius: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.6rem;
-      font-weight: bold;
-      color: #d4e8b0;
+      background: #4a6741; min-width: 120px; height: 70px; border-radius: 24px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; font-weight: bold; color: #d4e8b0;
       text-shadow: 3px 3px 0 #1f2e1a;
-      box-shadow: 0 8px 0 #1f2e1a, 0 6px 12px rgba(0, 0, 0, 0.5);
-      transition: all 0.05s ease;
-      touch-action: manipulation;
-      cursor: pointer;
-      user-select: none;
-      border: none;
-      padding: 0 20px;
+      box-shadow: 0 8px 0 #1f2e1a, 0 6px 12px rgba(0,0,0,0.5);
+      transition: all 0.05s ease; touch-action: manipulation;
+      cursor: pointer; user-select: none; border: none; padding: 0 20px;
     }
-    .action-btn:active {
-      transform: translateY(5px);
-      box-shadow: 0 3px 0 #1f2e1a, 0 6px 12px rgba(0, 0, 0, 0.5);
-      background: #5d7e52;
-    }
+    .action-btn:active { transform: translateY(5px); box-shadow: 0 3px 0 #1f2e1a, 0 6px 12px rgba(0,0,0,0.5); background: #5d7e52; }
     @media (max-width: 600px) {
-      .action-btn {
-        min-width: 90px;
-        height: 60px;
-        font-size: 1.3rem;
-        border-radius: 20px;
-      }
-      .hud {
-        font-size: 1.2rem;
-      }
-      .score span {
-        font-size: 1.5rem;
-      }
-      .back-btn {
-        font-size: 0.9rem;
-        padding: 8px 14px;
-      }
+      .action-btn { min-width: 90px; height: 60px; font-size: 1.3rem; border-radius: 20px; }
+      .hud { font-size: 1.2rem; }
+      .score span { font-size: 1.5rem; }
+      .back-btn { font-size: 0.9rem; padding: 8px 14px; }
     }
   </style>
 </head>
@@ -184,722 +75,624 @@
 </div>
 
 <script>
-  (function() {
-    const CANVAS_W = 800;
-    const CANVAS_H = 400;
-    const GROUND_Y = 330;
-    const GRAVITY = 0.65;
-    const JUMP_FORCE = -12;
-    const PLAYER_X = 120;
+(function() {
+  'use strict';
 
-    let gameState = 'start';
-    let distance = 0;
-    let highScore = 0;
-    let speed = 5;
+  const CANVAS_W = 800;
+  const CANVAS_H = 400;
+  const GROUND_Y = 330;
+  const GRAVITY = 0.65;
+  const JUMP_FORCE = -12;
+  const PLAYER_X = 120;
 
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const scoreSpan = document.getElementById('scoreDisplay');
+  let gameState = 'start';
+  let distance = 0;
+  let highScore = 0;
+  let speed = 5;
+  let deathReason = '';
 
-    let player = {
-      y: GROUND_Y,
-      vy: 0,
-      isJumping: false,
-      isDucking: false,
-      w: 36,
-      h: 60,
-      duckH: 34
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const scoreSpan = document.getElementById('scoreDisplay');
+
+  let player = {
+    y: GROUND_Y, vy: 0, isJumping: false, isDucking: false,
+    w: 36, h: 60, duckH: 34
+  };
+
+  let obstacles = [];
+  let missile = {
+    x: CANVAS_W + 100, y: GROUND_Y - 40, w: 90, h: 28,
+    active: false, trail: [], warnTimer: 0
+  };
+
+  let particles = [];
+  let clouds = [];
+  let frameCount = 0;
+  let spawnTimer = 0;
+  let missileSpawnTimer = 0;
+  let missileActive = false;
+  let runCycle = 0;
+
+  const keys = { jump: false, duck: false };
+
+  function resetGame() {
+    gameState = 'playing';
+    distance = 0;
+    speed = 5;
+    deathReason = '';
+    player.y = GROUND_Y;
+    player.vy = 0;
+    player.isJumping = false;
+    player.isDucking = false;
+    obstacles = [];
+    particles = [];
+    missile = {
+      x: CANVAS_W + 100, y: GROUND_Y - 40, w: 90, h: 28,
+      active: false, trail: [], warnTimer: 0
     };
+    missileActive = false;
+    missileSpawnTimer = 0;
+    spawnTimer = 0;
+    frameCount = 0;
+    runCycle = 0;
+    updateScoreUI();
+    initClouds();
+  }
 
-    let obstacles = [];
-    let missile = {
-      x: 800,
-      y: GROUND_Y - 40,
-      w: 90,
-      h: 28,
-      active: false,
-      trail: []
+  function initClouds() {
+    clouds = [];
+    for (let i = 0; i < 6; i++) {
+      clouds.push({
+        x: Math.random() * CANVAS_W,
+        y: 40 + Math.random() * 120,
+        w: 60 + Math.random() * 60,
+        h: 20 + Math.random() * 15,
+        speed: 0.3 + Math.random() * 0.5
+      });
+    }
+  }
+
+  function updateScoreUI() {
+    scoreSpan.textContent = Math.floor(distance / 10);
+  }
+
+  function overlapsObstacle(x, y, w, h) {
+    for (let obs of obstacles) {
+      if (x < obs.x + obs.w && x + w > obs.x &&
+          y < obs.y + obs.h && y + h > obs.y) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function spawnObstacle() {
+    if (missileActive) return;
+
+    const types = ['cactus', 'crate', 'barrier'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    let obs;
+
+    if (type === 'cactus') {
+      const h = 40 + Math.random() * 40;
+      obs = { x: CANVAS_W + 40, y: GROUND_Y - h, w: 24, h: h, type: 'cactus', passed: false };
+    } else if (type === 'crate') {
+      const size = 36 + Math.random() * 20;
+      obs = { x: CANVAS_W + 40, y: GROUND_Y - size, w: size, h: size, type: 'crate', passed: false };
+    } else {
+      obs = { x: CANVAS_W + 40, y: GROUND_Y - 50, w: 30, h: 50, type: 'barrier', passed: false };
+    }
+
+    if (missileActive && missile.active) {
+      const mx = missile.x;
+      const mw = missile.w;
+      if (obs.x < mx + mw + 80 && obs.x + obs.w > mx - 80) {
+        return;
+      }
+    }
+
+    obstacles.push(obs);
+  }
+
+  function spawnMissile() {
+    const safeZoneStart = CANVAS_W * 0.35;
+    obstacles = obstacles.filter(o => o.x < safeZoneStart);
+
+    missileActive = true;
+    missile = {
+      x: CANVAS_W + 250,
+      y: GROUND_Y - 60 - Math.random() * 60,
+      w: 100,
+      h: 30,
+      active: true,
+      trail: [],
+      warnTimer: 90
     };
+  }
 
-    let particles = [];
-    let clouds = [];
-    let frameCount = 0;
-    let spawnTimer = 0;
-    let missileSpawnTimer = 0;
-    let missileActive = false;
-    let runCycle = 0;
+  function updateMissile() {
+    if (!missileActive) return;
 
-    const keys = { jump: false, duck: false };
+    if (missile.warnTimer > 0) {
+      missile.warnTimer--;
+      return;
+    }
 
-    function resetGame() {
-      gameState = 'playing';
-      distance = 0;
-      speed = 5;
-      player.y = GROUND_Y;
-      player.vy = 0;
-      player.isJumping = false;
-      player.isDucking = false;
-      obstacles = [];
-      particles = [];
-      missile = {
-        x: CANVAS_W + 100,
-        y: GROUND_Y - 40,
-        w: 90,
-        h: 28,
-        active: false,
-        trail: []
-      };
+    missile.x -= speed * 1.6;
+
+    missile.trail.unshift({ x: missile.x + missile.w, y: missile.y + missile.h / 2, life: 1.0 });
+    if (missile.trail.length > 20) missile.trail.pop();
+    for (let t of missile.trail) t.life -= 0.04;
+    missile.trail = missile.trail.filter(t => t.life > 0);
+
+    if (missile.x + missile.w < -100) {
       missileActive = false;
-      missileSpawnTimer = 0;
-      spawnTimer = 0;
-      frameCount = 0;
-      runCycle = 0;
-      updateScoreUI();
-      initClouds();
+      missile.active = false;
     }
+  }
 
-    function initClouds() {
-      clouds = [];
-      for (let i = 0; i < 6; i++) {
-        clouds.push({
-          x: Math.random() * CANVAS_W,
-          y: 40 + Math.random() * 120,
-          w: 60 + Math.random() * 60,
-          h: 20 + Math.random() * 15,
-          speed: 0.3 + Math.random() * 0.5
-        });
-      }
+  function checkMissileCollision() {
+    if (!missileActive || !missile.active) return false;
+    if (missile.warnTimer > 0) return false;
+    const px = PLAYER_X + 6;
+    const pw = player.w - 12;
+    const py = player.isDucking ? GROUND_Y - player.duckH : player.y - player.h;
+    const ph = player.isDucking ? player.duckH : player.h;
+
+    if (px < missile.x + missile.w &&
+        px + pw > missile.x &&
+        py < missile.y + missile.h &&
+        py + ph > missile.y) {
+      return true;
     }
+    return false;
+  }
 
-    function updateScoreUI() {
-      scoreSpan.textContent = Math.floor(distance / 10);
-    }
-
-    function spawnObstacle() {
-      const types = ['cactus', 'crate', 'barrier'];
-      const type = types[Math.floor(Math.random() * types.length)];
-      let obs;
-
-      if (type === 'cactus') {
-        const h = 40 + Math.random() * 40;
-        obs = {
-          x: CANVAS_W + 40,
-          y: GROUND_Y - h,
-          w: 24,
-          h: h,
-          type: 'cactus',
-          passed: false
-        };
-      } else if (type === 'crate') {
-        const size = 36 + Math.random() * 20;
-        obs = {
-          x: CANVAS_W + 40,
-          y: GROUND_Y - size,
-          w: size,
-          h: size,
-          type: 'crate',
-          passed: false
-        };
-      } else {
-        obs = {
-          x: CANVAS_W + 40,
-          y: GROUND_Y - 50,
-          w: 30,
-          h: 50,
-          type: 'barrier',
-          passed: false
-        };
-      }
-      obstacles.push(obs);
-    }
-
-    function spawnMissile() {
-      missileActive = true;
-      missile = {
-        x: CANVAS_W + 200,
-        y: GROUND_Y - 60 - Math.random() * 60,
-        w: 100,
-        h: 30,
-        active: true,
-        trail: []
-      };
-    }
-
-    function updateMissile() {
-      if (!missileActive) return;
-
-      missile.x -= speed * 1.6;
-
-      missile.trail.unshift({ x: missile.x + missile.w, y: missile.y + missile.h / 2, life: 1.0 });
-      if (missile.trail.length > 20) missile.trail.pop();
-      for (let t of missile.trail) {
-        t.life -= 0.04;
-      }
-      missile.trail = missile.trail.filter(t => t.life > 0);
-
-      if (missile.x + missile.w < -100) {
-        missileActive = false;
-        missile.active = false;
-      }
-    }
-
-    function checkMissileCollision() {
-      if (!missileActive || !missile.active) return false;
-      const px = PLAYER_X + 6;
-      const pw = player.w - 12;
+  function checkObstacleCollision() {
+    for (let obs of obstacles) {
+      const px = PLAYER_X + 8;
+      const pw = player.w - 16;
       const py = player.isDucking ? GROUND_Y - player.duckH : player.y - player.h;
       const ph = player.isDucking ? player.duckH : player.h;
 
-      if (px < missile.x + missile.w &&
-          px + pw > missile.x &&
-          py < missile.y + missile.h &&
-          py + ph > missile.y) {
+      if (px < obs.x + obs.w && px + pw > obs.x &&
+          py < obs.y + obs.h && py + ph > obs.y) {
         return true;
       }
-      return false;
     }
+    return false;
+  }
 
-    function checkObstacleCollision() {
-      for (let obs of obstacles) {
-        const px = PLAYER_X + 8;
-        const pw = player.w - 16;
-        const py = player.isDucking ? GROUND_Y - player.duckH : player.y - player.h;
-        const ph = player.isDucking ? player.duckH : player.h;
-
-        if (px < obs.x + obs.w &&
-            px + pw > obs.x &&
-            py < obs.y + obs.h &&
-            py + ph > obs.y) {
-          return true;
-        }
-      }
-      return false;
+  function createExplosion(x, y) {
+    for (let i = 0; i < 30; i++) {
+      particles.push({
+        x: x, y: y,
+        vx: (Math.random() - 0.5) * 12,
+        vy: (Math.random() - 0.5) * 12 - 2,
+        life: 1.0,
+        color: Math.random() > 0.5 ? '#ff4400' : '#ffaa00',
+        size: 4 + Math.random() * 6
+      });
     }
+  }
 
-    function createExplosion(x, y) {
-      for (let i = 0; i < 30; i++) {
-        particles.push({
-          x: x,
-          y: y,
-          vx: (Math.random() - 0.5) * 12,
-          vy: (Math.random() - 0.5) * 12 - 2,
-          life: 1.0,
-          color: Math.random() > 0.5 ? '#ff4400' : '#ffaa00',
-          size: 4 + Math.random() * 6
-        });
-      }
+  function updateParticles() {
+    for (let p of particles) {
+      p.x += p.vx; p.y += p.vy; p.vy += 0.3; p.life -= 0.02;
     }
+    particles = particles.filter(p => p.life > 0);
+  }
 
-    function updateParticles() {
-      for (let p of particles) {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.3;
-        p.life -= 0.02;
-      }
-      particles = particles.filter(p => p.life > 0);
-    }
+  function gameOver(reason) {
+    gameState = 'gameover';
+    deathReason = reason;
+    const scoreVal = Math.floor(distance / 10);
+    if (scoreVal > highScore) highScore = scoreVal;
+    createExplosion(PLAYER_X + player.w / 2, player.y - player.h / 2);
+  }
 
-    function gameOver() {
-      gameState = 'gameover';
-      const scoreVal = Math.floor(distance / 10);
-      if (scoreVal > highScore) highScore = scoreVal;
-      createExplosion(PLAYER_X + player.w / 2, player.y - player.h / 2);
-    }
+  function update() {
+    if (gameState !== 'playing') return;
 
-    function update() {
-      if (gameState !== 'playing') return;
+    frameCount++;
+    runCycle += 0.25;
 
-      frameCount++;
-      runCycle += 0.25;
+    distance += speed;
+    speed = Math.min(12, 5 + distance / 2000);
+    updateScoreUI();
 
-      distance += speed;
-      speed = Math.min(12, 5 + distance / 2000);
-      updateScoreUI();
-
-      if (player.isJumping) {
-        player.vy += GRAVITY;
-        player.y += player.vy;
-
-        if (player.y >= GROUND_Y) {
-          player.y = GROUND_Y;
-          player.vy = 0;
-          player.isJumping = false;
-        }
-      }
-
-      spawnTimer++;
-      const spawnInterval = Math.max(45, 90 - Math.floor(distance / 500));
-      if (spawnTimer > spawnInterval) {
-        spawnTimer = 0;
-        spawnObstacle();
-      }
-
-      missileSpawnTimer++;
-      if (missileSpawnTimer > 300 && !missileActive && distance > 800) {
-        missileSpawnTimer = 0;
-        if (Math.random() < 0.4) {
-          spawnMissile();
-        }
-      }
-
-      for (let obs of obstacles) {
-        obs.x -= speed;
-      }
-      obstacles = obstacles.filter(o => o.x + o.w > -50);
-
-      updateMissile();
-
-      if (checkObstacleCollision() || checkMissileCollision()) {
-        gameOver();
-      }
-
-      for (let c of clouds) {
-        c.x -= c.speed;
-        if (c.x + c.w < 0) {
-          c.x = CANVAS_W + 20;
-          c.y = 40 + Math.random() * 120;
-        }
-      }
-
-      updateParticles();
-    }
-
-    function drawSky() {
-      const grad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
-      grad.addColorStop(0, '#4A90D9');
-      grad.addColorStop(0.6, '#87CEEB');
-      grad.addColorStop(1, '#B0E0E6');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, CANVAS_W, GROUND_Y);
-    }
-
-    function drawClouds() {
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      for (let c of clouds) {
-        ctx.beginPath();
-        ctx.ellipse(c.x, c.y, c.w / 2, c.h / 2, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(c.x - c.w / 3, c.y + 5, c.w / 3, c.h / 2.5, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(c.x + c.w / 3, c.y + 3, c.w / 3, c.h / 2.5, 0, 0, Math.PI * 2);
-        ctx.fill();
+    if (player.isJumping) {
+      player.vy += GRAVITY;
+      player.y += player.vy;
+      if (player.y >= GROUND_Y) {
+        player.y = GROUND_Y;
+        player.vy = 0;
+        player.isJumping = false;
       }
     }
 
-    function drawGround() {
-      ctx.fillStyle = '#8B7355';
-      ctx.fillRect(0, GROUND_Y, CANVAS_W, CANVAS_H - GROUND_Y);
+    spawnTimer++;
+    const spawnInterval = Math.max(45, 90 - Math.floor(distance / 500));
+    if (spawnTimer > spawnInterval) {
+      spawnTimer = 0;
+      spawnObstacle();
+    }
 
-      ctx.fillStyle = '#6B5335';
-      for (let i = 0; i < CANVAS_W; i += 40) {
-        const offset = (frameCount * speed * 0.5) % 40;
-        ctx.fillRect(i - offset, GROUND_Y, 20, 6);
-      }
+    missileSpawnTimer++;
+    if (missileSpawnTimer > 300 && !missileActive && distance > 800) {
+      missileSpawnTimer = 0;
+      if (Math.random() < 0.4) spawnMissile();
+    }
 
-      ctx.fillStyle = '#5a8a3a';
-      ctx.fillRect(0, GROUND_Y - 4, CANVAS_W, 6);
+    for (let obs of obstacles) obs.x -= speed;
+    obstacles = obstacles.filter(o => o.x + o.w > -50);
 
-      ctx.fillStyle = '#4a7a2a';
-      for (let i = 0; i < CANVAS_W; i += 16) {
-        const offset = (frameCount * speed * 0.8) % 16;
-        ctx.fillRect(i - offset, GROUND_Y - 6, 4, 4);
+    updateMissile();
+
+    if (checkObstacleCollision()) {
+      gameOver('撞上了地面障碍物');
+      return;
+    }
+    if (checkMissileCollision()) {
+      gameOver('被伊朗导弹击中');
+      return;
+    }
+
+    for (let c of clouds) {
+      c.x -= c.speed;
+      if (c.x + c.w < 0) {
+        c.x = CANVAS_W + 20;
+        c.y = 40 + Math.random() * 120;
       }
     }
 
-    function drawMissile() {
-      if (!missileActive || !missile.active) return;
+    updateParticles();
+  }
 
-      for (let t of missile.trail) {
-        ctx.fillStyle = `rgba(255, ${80 + t.life * 100}, 0, ${t.life * 0.7})`;
-        ctx.beginPath();
-        ctx.arc(t.x, t.y, 4 + t.life * 8, 0, Math.PI * 2);
-        ctx.fill();
-      }
+  function drawSky() {
+    const grad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+    grad.addColorStop(0, '#4A90D9');
+    grad.addColorStop(0.6, '#87CEEB');
+    grad.addColorStop(1, '#B0E0E6');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, CANVAS_W, GROUND_Y);
+  }
 
-      const mx = missile.x;
-      const my = missile.y;
-      const mw = missile.w;
-      const mh = missile.h;
-
-      ctx.fillStyle = '#c0c0c0';
+  function drawClouds() {
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    for (let c of clouds) {
       ctx.beginPath();
-      ctx.moveTo(mx + mw, my + mh / 2);
-      ctx.lineTo(mx + mw - 30, my);
-      ctx.lineTo(mx + mw - 30, my + mh);
-      ctx.closePath();
+      ctx.ellipse(c.x, c.y, c.w / 2, c.h / 2, 0, 0, Math.PI * 2);
       ctx.fill();
-
-      ctx.fillStyle = '#a0a0a0';
-      ctx.fillRect(mx, my + 4, mw - 30, mh - 8);
-
-      ctx.fillStyle = '#ff2222';
       ctx.beginPath();
-      ctx.arc(mx + mw - 40, my + mh / 2, 6, 0, Math.PI * 2);
+      ctx.ellipse(c.x - c.w / 3, c.y + 5, c.w / 3, c.h / 2.5, 0, 0, Math.PI * 2);
       ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(c.x + c.w / 3, c.y + 3, c.w / 3, c.h / 2.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
 
-      ctx.fillStyle = '#333';
-      ctx.fillRect(mx + 10, my - 4, 15, 6);
-      ctx.fillRect(mx + 10, my + mh - 2, 15, 6);
+  function drawGround() {
+    ctx.fillStyle = '#8B7355';
+    ctx.fillRect(0, GROUND_Y, CANVAS_W, CANVAS_H - GROUND_Y);
+    ctx.fillStyle = '#6B5335';
+    for (let i = 0; i < CANVAS_W; i += 40) {
+      const offset = (frameCount * speed * 0.5) % 40;
+      ctx.fillRect(i - offset, GROUND_Y, 20, 6);
+    }
+    ctx.fillStyle = '#5a8a3a';
+    ctx.fillRect(0, GROUND_Y - 4, CANVAS_W, 6);
+    ctx.fillStyle = '#4a7a2a';
+    for (let i = 0; i < CANVAS_W; i += 16) {
+      const offset = (frameCount * speed * 0.8) % 16;
+      ctx.fillRect(i - offset, GROUND_Y - 6, 4, 4);
+    }
+  }
 
-      ctx.font = 'bold 14px "Courier New"';
-      ctx.fillStyle = '#ffcc00';
+  function drawMissileWarning() {
+    if (!missileActive) return;
+    if (missile.warnTimer <= 0) return;
+    if (Math.floor(missile.warnTimer / 8) % 2 === 0) {
+      ctx.fillStyle = 'rgba(255, 40, 40, 0.85)';
+      ctx.font = 'bold 28px "Courier New", monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('☢', mx + mw - 55, my + mh / 2 + 5);
+      ctx.fillText('⚠ 导弹来袭 ⚠', CANVAS_W / 2, 60);
       ctx.textAlign = 'left';
+    }
+  }
 
-      ctx.fillStyle = 'rgba(255, 200, 0, 0.6)';
-      ctx.beginPath();
-      ctx.ellipse(mx - 5, my + mh / 2, 12, 8, 0, 0, Math.PI * 2);
-      ctx.fill();
+  function drawMissile() {
+    if (!missileActive || !missile.active) return;
+    if (missile.warnTimer > 0) return;
 
-      ctx.fillStyle = '#ff6600';
+    for (let t of missile.trail) {
+      ctx.fillStyle = `rgba(255, ${80 + t.life * 100}, 0, ${t.life * 0.7})`;
       ctx.beginPath();
-      ctx.ellipse(mx - 10, my + mh / 2, 8, 5, 0, 0, Math.PI * 2);
+      ctx.arc(t.x, t.y, 4 + t.life * 8, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    function drawObstacles() {
-      for (let obs of obstacles) {
-        if (obs.type === 'cactus') {
-          ctx.fillStyle = '#2d6a2d';
-          ctx.fillRect(obs.x + 6, obs.y, obs.w - 12, obs.h);
-          ctx.fillRect(obs.x, obs.y + obs.h * 0.3, 8, obs.h * 0.4);
-          ctx.fillRect(obs.x + obs.w - 8, obs.y + obs.h * 0.2, 8, obs.h * 0.5);
-          ctx.fillStyle = '#3d8a3d';
-          ctx.fillRect(obs.x + 8, obs.y, 6, obs.h);
-        } else if (obs.type === 'crate') {
-          ctx.fillStyle = '#8B6914';
-          ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
-          ctx.strokeStyle = '#5a4510';
-          ctx.lineWidth = 3;
-          ctx.strokeRect(obs.x + 2, obs.y + 2, obs.w - 4, obs.h - 4);
-          ctx.beginPath();
-          ctx.moveTo(obs.x + 4, obs.y + 4);
-          ctx.lineTo(obs.x + obs.w - 4, obs.y + obs.h - 4);
-          ctx.moveTo(obs.x + obs.w - 4, obs.y + 4);
-          ctx.lineTo(obs.x + 4, obs.y + obs.h - 4);
-          ctx.stroke();
-        } else {
-          ctx.fillStyle = '#666';
-          ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
-          ctx.fillStyle = '#888';
-          ctx.fillRect(obs.x + 2, obs.y + 2, obs.w - 4, obs.h - 4);
-          ctx.fillStyle = '#ffcc00';
-          for (let i = 0; i < obs.h; i += 12) {
-            ctx.fillRect(obs.x, obs.y + i, obs.w, 6);
-          }
-          ctx.fillStyle = '#444';
-          ctx.fillRect(obs.x - 2, obs.y + obs.h - 8, obs.w + 4, 8);
-        }
-      }
-    }
+    const mx = missile.x, my = missile.y, mw = missile.w, mh = missile.h;
 
-    function drawIDFSoldier(px, py, isDucking, isJumping, cycle) {
-      const pw = 36;
-      const bodyH = isDucking ? 26 : 40;
+    ctx.fillStyle = '#c0c0c0';
+    ctx.beginPath();
+    ctx.moveTo(mx + mw, my + mh / 2);
+    ctx.lineTo(mx + mw - 30, my);
+    ctx.lineTo(mx + mw - 30, my + mh);
+    ctx.closePath();
+    ctx.fill();
 
-      ctx.save();
+    ctx.fillStyle = '#a0a0a0';
+    ctx.fillRect(mx, my + 4, mw - 30, mh - 8);
 
-      if (gameState === 'gameover') {
-        ctx.globalAlpha = 0.45;
-      }
+    ctx.fillStyle = '#ff2222';
+    ctx.beginPath();
+    ctx.arc(mx + mw - 40, my + mh / 2, 6, 0, Math.PI * 2);
+    ctx.fill();
 
-      if (isDucking) {
-        ctx.fillStyle = '#3a4a30';
-        ctx.fillRect(px + 4, py + 18, 10, 8);
-        ctx.fillRect(px + 20, py + 18, 10, 8);
-        ctx.fillStyle = '#1a1a1a';
-        ctx.fillRect(px + 2, py + 24, 14, 6);
-        ctx.fillRect(px + 20, py + 24, 14, 6);
+    ctx.fillStyle = '#333';
+    ctx.fillRect(mx + 10, my - 4, 15, 6);
+    ctx.fillRect(mx + 10, my + mh - 2, 15, 6);
 
-        ctx.fillStyle = '#5a6b3a';
-        ctx.fillRect(px + 6, py + 6, pw - 12, 14);
-        ctx.fillStyle = '#4a5a2a';
-        ctx.fillRect(px + 8, py + 8, pw - 16, 10);
-        ctx.fillStyle = '#3a4a20';
-        ctx.fillRect(px + 10, py + 10, 6, 6);
-        ctx.fillRect(px + 20, py + 10, 6, 6);
+    ctx.font = 'bold 14px "Courier New"';
+    ctx.fillStyle = '#ffcc00';
+    ctx.textAlign = 'center';
+    ctx.fillText('☢', mx + mw - 55, my + mh / 2 + 5);
+    ctx.textAlign = 'left';
 
-        ctx.fillStyle = '#5a6b3a';
-        ctx.fillRect(px - 2, py + 8, 10, 6);
-        ctx.fillRect(px + pw - 8, py + 8, 10, 6);
+    ctx.fillStyle = 'rgba(255, 200, 0, 0.6)';
+    ctx.beginPath();
+    ctx.ellipse(mx - 5, my + mh / 2, 12, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ff6600';
+    ctx.beginPath();
+    ctx.ellipse(mx - 10, my + mh / 2, 8, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
 
-        ctx.fillStyle = '#4a5a2a';
+  function drawObstacles() {
+    for (let obs of obstacles) {
+      if (obs.type === 'cactus') {
+        ctx.fillStyle = '#2d6a2d';
+        ctx.fillRect(obs.x + 6, obs.y, obs.w - 12, obs.h);
+        ctx.fillRect(obs.x, obs.y + obs.h * 0.3, 8, obs.h * 0.4);
+        ctx.fillRect(obs.x + obs.w - 8, obs.y + obs.h * 0.2, 8, obs.h * 0.5);
+        ctx.fillStyle = '#3d8a3d';
+        ctx.fillRect(obs.x + 8, obs.y, 6, obs.h);
+      } else if (obs.type === 'crate') {
+        ctx.fillStyle = '#8B6914';
+        ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+        ctx.strokeStyle = '#5a4510';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(obs.x + 2, obs.y + 2, obs.w - 4, obs.h - 4);
         ctx.beginPath();
-        ctx.arc(px + pw / 2 + 2, py + 4, 12, Math.PI, 0);
-        ctx.fill();
-        ctx.fillRect(px + pw / 2 - 10, py + 2, 24, 6);
-        ctx.strokeStyle = '#3a4a1a';
-        ctx.lineWidth = 1;
-        for (let i = 0; i < 5; i++) {
-          ctx.beginPath();
-          ctx.moveTo(px + pw / 2 - 10 + i * 6, py + 2);
-          ctx.lineTo(px + pw / 2 - 6 + i * 6, py + 8);
-          ctx.stroke();
-        }
-        ctx.fillStyle = '#e0b080';
-        ctx.beginPath();
-        ctx.arc(px + pw / 2 + 8, py + 6, 5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#1a1a1a';
-        ctx.beginPath();
-        ctx.arc(px + pw / 2 + 10, py + 5, 1.5, 0, Math.PI * 2);
-        ctx.fill();
-
+        ctx.moveTo(obs.x + 4, obs.y + 4);
+        ctx.lineTo(obs.x + obs.w - 4, obs.y + obs.h - 4);
+        ctx.moveTo(obs.x + obs.w - 4, obs.y + 4);
+        ctx.lineTo(obs.x + 4, obs.y + obs.h - 4);
+        ctx.stroke();
       } else {
-        const swing = isJumping ? 0 : Math.sin(cycle) * 8;
-        const legSwing = isJumping ? 0 : Math.sin(cycle) * 6;
-
-        ctx.fillStyle = '#4a5a30';
-        ctx.fillRect(px + 8 + legSwing, py + bodyH + 6, 9, 18);
-        ctx.fillStyle = '#1a1a1a';
-        ctx.fillRect(px + 6 + legSwing, py + bodyH + 22, 14, 6);
-
-        ctx.fillStyle = '#5a6b3a';
-        ctx.fillRect(px + 19 - legSwing, py + bodyH + 6, 9, 18);
-        ctx.fillStyle = '#1a1a1a';
-        ctx.fillRect(px + 17 - legSwing, py + bodyH + 22, 14, 6);
-
-        ctx.fillStyle = '#5a6b3a';
-        ctx.fillRect(px + 6, py + 14, pw - 12, bodyH - 8);
-        ctx.fillStyle = '#4a5a2a';
-        ctx.fillRect(px + 8, py + 16, pw - 16, 16);
-        ctx.fillStyle = '#3a4a20';
-        ctx.fillRect(px + 11, py + 18, 6, 8);
-        ctx.fillRect(px + 19, py + 18, 6, 8);
-        ctx.fillStyle = '#2e3a18';
-        ctx.fillRect(px + 8, py + 22, pw - 16, 3);
-
-        ctx.save();
-        ctx.translate(px + 4, py + 18);
-        ctx.rotate(swing * 0.04);
-        ctx.fillStyle = '#4a5a30';
-        ctx.fillRect(-4, 0, 8, 20);
-        ctx.fillStyle = '#e0b080';
-        ctx.beginPath();
-        ctx.arc(0, 20, 4, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-
-        ctx.save();
-        ctx.translate(px + pw - 6, py + 18);
-        ctx.rotate(-swing * 0.04);
-        ctx.fillStyle = '#5a6b3a';
-        ctx.fillRect(-4, 0, 8, 20);
-        ctx.fillStyle = '#e0b080';
-        ctx.beginPath();
-        ctx.arc(0, 20, 4, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = '#2a2a2a';
-        ctx.fillRect(-2, 14, 22, 5);
-        ctx.fillStyle = '#1a1a1a';
-        ctx.fillRect(14, 12, 8, 9);
-        ctx.fillStyle = '#333';
-        ctx.fillRect(4, 19, 6, 10);
+        ctx.fillStyle = '#666';
+        ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+        ctx.fillStyle = '#888';
+        ctx.fillRect(obs.x + 2, obs.y + 2, obs.w - 4, obs.h - 4);
+        ctx.fillStyle = '#ffcc00';
+        for (let i = 0; i < obs.h; i += 12) {
+          ctx.fillRect(obs.x, obs.y + i, obs.w, 6);
+        }
         ctx.fillStyle = '#444';
-        ctx.fillRect(20, 15, 8, 3);
-        ctx.restore();
-
-        ctx.fillStyle = '#e0b080';
-        ctx.fillRect(px + 14, py + 10, 8, 6);
-
-        ctx.fillStyle = '#e0b080';
-        ctx.beginPath();
-        ctx.arc(px + 20, py + 8, 8, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = '#4a5a2a';
-        ctx.beginPath();
-        ctx.arc(px + 20, py + 4, 11, Math.PI, 0);
-        ctx.fill();
-        ctx.fillRect(px + 9, py + 2, 22, 6);
-
-        ctx.strokeStyle = '#3a4a1a';
-        ctx.lineWidth = 1.2;
-        for (let i = 0; i < 6; i++) {
-          ctx.beginPath();
-          ctx.moveTo(px + 10 + i * 4, py + 2);
-          ctx.lineTo(px + 14 + i * 4, py + 8);
-          ctx.stroke();
-        }
-        ctx.fillStyle = '#3a4a1a';
-        ctx.fillRect(px + 10, py + 2, 20, 2);
-
-        ctx.fillStyle = '#1a1a1a';
-        ctx.beginPath();
-        ctx.arc(px + 23, py + 6, 2, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(px + pw - 10, py + 26, 6, 5);
-        ctx.fillStyle = '#0038b8';
-        ctx.fillRect(px + pw - 10, py + 27, 6, 1.5);
-        ctx.fillRect(px + pw - 10, py + 29, 6, 1.5);
-      }
-
-      ctx.restore();
-    }
-
-    function drawPlayer() {
-      const py = player.isDucking ? GROUND_Y - player.duckH : player.y - player.h;
-      drawIDFSoldier(PLAYER_X, py, player.isDucking, player.isJumping, runCycle);
-    }
-
-    function drawParticles() {
-      for (let p of particles) {
-        ctx.globalAlpha = p.life;
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1.0;
-    }
-
-    function drawUI() {
-      if (gameState === 'start') {
-        ctx.fillStyle = 'rgba(10, 20, 30, 0.8)';
-        ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-        ctx.font = 'bold 42px "Courier New", monospace';
-        ctx.fillStyle = '#ffd966';
-        ctx.shadowColor = '#8a6e2a';
-        ctx.shadowBlur = 16;
-        ctx.textAlign = 'center';
-        ctx.fillText('🎖️ 士兵跑酷', CANVAS_W / 2, 140);
-        ctx.font = '24px "Courier New", monospace';
-        ctx.fillStyle = '#e0f0b0';
-        ctx.fillText('躲避伊朗导弹的追击！', CANVAS_W / 2, 200);
-        ctx.font = '20px "Courier New", monospace';
-        ctx.fillStyle = '#b8e0a0';
-        ctx.fillText('空格 / ↑ 跳跃    ↓ 下滑', CANVAS_W / 2, 260);
-        ctx.fillStyle = '#ffd966';
-        ctx.font = '26px "Courier New", monospace';
-        ctx.fillText('点击屏幕开始', CANVAS_W / 2, 330);
-        ctx.shadowBlur = 0;
-        ctx.textAlign = 'left';
-      } else if (gameState === 'gameover') {
-        ctx.fillStyle = 'rgba(20, 10, 5, 0.85)';
-        ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-        ctx.font = 'bold 48px "Courier New", monospace';
-        ctx.fillStyle = '#ff4444';
-        ctx.shadowColor = '#aa0000';
-        ctx.shadowBlur = 20;
-        ctx.textAlign = 'center';
-        ctx.fillText('💥 被导弹击中！', CANVAS_W / 2, 160);
-        ctx.font = '30px "Courier New", monospace';
-        ctx.fillStyle = '#e0f0b0';
-        ctx.fillText('距离: ' + Math.floor(distance / 10) + ' m', CANVAS_W / 2, 240);
-        if (highScore > 0) {
-          ctx.font = '22px "Courier New", monospace';
-          ctx.fillStyle = '#ffd966';
-          ctx.fillText('最佳: ' + highScore + ' m', CANVAS_W / 2, 290);
-        }
-        ctx.font = '24px "Courier New", monospace';
-        ctx.fillStyle = '#b8e0a0';
-        ctx.fillText('点击重新开始', CANVAS_W / 2, 360);
-        ctx.shadowBlur = 0;
-        ctx.textAlign = 'left';
+        ctx.fillRect(obs.x - 2, obs.y + obs.h - 8, obs.w + 4, 8);
       }
     }
+  }
 
-    function draw() {
-      drawSky();
-      drawClouds();
-      drawGround();
+  function drawIDFSoldier(px, py, isDucking, isJumping, cycle) {
+    const pw = 36;
+    const bodyH = isDucking ? 26 : 40;
 
-      for (let obs of obstacles) {
-        drawObstacles();
-      }
+    ctx.save();
+    if (gameState === 'gameover') ctx.globalAlpha = 0.45;
 
-      drawMissile();
-      drawPlayer();
-      drawParticles();
-      drawUI();
+    if (isDucking) {
+      drawDuckingSoldier(px, py, pw);
+    } else {
+      drawStandingSoldier(px, py, pw, bodyH, isJumping, cycle);
     }
 
-    function loop() {
-      update();
-      draw();
-      requestAnimationFrame(loop);
+    ctx.restore();
+  }
+
+  function drawDuckingSoldier(px, py, pw) {
+    ctx.fillStyle = '#3a4a30';
+    ctx.fillRect(px + 4, py + 18, 10, 8);
+    ctx.fillRect(px + 20, py + 18, 10, 8);
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(px + 2, py + 24, 14, 6);
+    ctx.fillRect(px + 20, py + 24, 14, 6);
+
+    ctx.fillStyle = '#5a6b3a';
+    ctx.fillRect(px + 6, py + 6, pw - 12, 14);
+    ctx.fillStyle = '#4a5a2a';
+    ctx.fillRect(px + 8, py + 8, pw - 16, 10);
+    ctx.fillStyle = '#3a4a20';
+    ctx.fillRect(px + 10, py + 10, 6, 6);
+    ctx.fillRect(px + 20, py + 10, 6, 6);
+
+    ctx.fillStyle = '#5a6b3a';
+    ctx.fillRect(px - 2, py + 8, 10, 6);
+    ctx.fillRect(px + pw - 8, py + 8, 10, 6);
+
+    ctx.fillStyle = '#4a5a2a';
+    ctx.beginPath();
+    ctx.arc(px + pw / 2 + 2, py + 4, 12, Math.PI, 0);
+    ctx.fill();
+    ctx.fillRect(px + pw / 2 - 10, py + 2, 24, 6);
+    ctx.strokeStyle = '#3a4a1a';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 5; i++) {
+      ctx.beginPath();
+      ctx.moveTo(px + pw / 2 - 10 + i * 6, py + 2);
+      ctx.lineTo(px + pw / 2 - 6 + i * 6, py + 8);
+      ctx.stroke();
     }
+    ctx.fillStyle = '#e0b080';
+    ctx.beginPath();
+    ctx.arc(px + pw / 2 + 8, py + 6, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.arc(px + pw / 2 + 10, py + 5, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
 
-    function jump() {
-      if (gameState === 'start') {
-        resetGame();
-        return;
-      }
-      if (gameState === 'gameover') {
-        resetGame();
-        return;
-      }
-      if (!player.isJumping && gameState === 'playing') {
-        player.vy = JUMP_FORCE;
-        player.isJumping = true;
-        player.isDucking = false;
-      }
+  function drawStandingSoldier(px, py, pw, bodyH, isJumping, cycle) {
+    const swing = isJumping ? 0 : Math.sin(cycle) * 8;
+    const legSwing = isJumping ? 0 : Math.sin(cycle) * 6;
+
+    ctx.fillStyle = '#4a5a30';
+    ctx.fillRect(px + 8 + legSwing, py + bodyH + 6, 9, 16);
+    ctx.fillStyle = '#2e3a1e';
+    ctx.fillRect(px + 7 + legSwing, py + bodyH + 12, 11, 5);
+    ctx.fillStyle = '#3a4a24';
+    ctx.fillRect(px + 8 + legSwing, py + bodyH + 20, 9, 4);
+    ctx.fillStyle = '#151510';
+    ctx.fillRect(px + 5 + legSwing, py + bodyH + 22, 14, 6);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(px + 5 + legSwing, py + bodyH + 26, 14, 2);
+    ctx.fillStyle = '#4a3a20';
+    ctx.fillRect(px + 6 + legSwing, py + bodyH + 23, 12, 1.5);
+
+    ctx.fillStyle = '#5a6b3a';
+    ctx.fillRect(px + 19 - legSwing, py + bodyH + 6, 9, 16);
+    ctx.fillStyle = '#3e4a26';
+    ctx.fillRect(px + 18 - legSwing, py + bodyH + 12, 11, 5);
+    ctx.fillStyle = '#4a5a30';
+    ctx.fillRect(px + 19 - legSwing, py + bodyH + 20, 9, 4);
+    ctx.fillStyle = '#1a1a12';
+    ctx.fillRect(px + 16 - legSwing, py + bodyH + 22, 14, 6);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(px + 16 - legSwing, py + bodyH + 26, 14, 2);
+    ctx.fillStyle = '#5a4a28';
+    ctx.fillRect(px + 17 - legSwing, py + bodyH + 23, 12, 1.5);
+
+    ctx.fillStyle = '#3a4a24';
+    ctx.fillRect(px - 2, py + 16, 8, 22);
+    ctx.fillStyle = '#2a3818';
+    ctx.fillRect(px - 2, py + 20, 8, 3);
+    ctx.fillRect(px - 2, py + 28, 8, 3);
+
+    ctx.fillStyle = '#5a6b3a';
+    ctx.fillRect(px + 6, py + 14, pw - 12, bodyH - 8);
+    ctx.fillStyle = '#4a5a2a';
+    ctx.fillRect(px + 8, py + 16, pw - 16, 16);
+    ctx.fillStyle = '#2e3a1e';
+    ctx.fillRect(px + 8, py + 18, pw - 16, 14);
+    ctx.fillStyle = '#1e2814';
+    ctx.fillRect(px + 10, py + 20, 7, 8);
+    ctx.fillRect(px + 19, py + 20, 7, 8);
+    ctx.fillStyle = '#5a4a28';
+    ctx.fillRect(px + 12, py + 22, 3, 2);
+    ctx.fillRect(px + 21, py + 22, 3, 2);
+    ctx.fillStyle = '#3a2e18';
+    ctx.fillRect(px + 6, py + 32, pw - 12, 4);
+    ctx.fillStyle = '#8a7a3a';
+    ctx.fillRect(px + 16, py + 32, 4, 4);
+    ctx.fillStyle = '#7a8a4a';
+    ctx.fillRect(px + 5, py + 14, 5, 3);
+    ctx.fillRect(px + pw - 10, py + 14, 5, 3);
+    ctx.fillStyle = '#c0a040';
+    ctx.fillRect(px + 6, py + 15, 3, 1.5);
+    ctx.fillRect(px + pw - 9, py + 15, 3, 1.5);
+
+    ctx.save();
+    ctx.translate(px + 4, py + 18);
+    ctx.rotate(swing * 0.04);
+    ctx.fillStyle = '#4a5a30';
+    ctx.fillRect(-4, 0, 8, 14);
+    ctx.fillStyle = '#2a3618';
+    ctx.fillRect(-4, 12, 8, 4);
+    ctx.fillStyle = '#3a4a24';
+    ctx.fillRect(-4, 16, 8, 6);
+    ctx.fillStyle = '#e0b080';
+    ctx.beginPath();
+    ctx.arc(0, 22, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#2a2a2a';
+    ctx.fillRect(-4, 20, 8, 3);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(px + pw - 6, py + 18);
+    ctx.rotate(-swing * 0.04);
+    ctx.fillStyle = '#5a6b3a';
+    ctx.fillRect(-4, 0, 8, 14);
+    ctx.fillStyle = '#3a4a24';
+    ctx.fillRect(-4, 12, 8, 4);
+    ctx.fillStyle = '#4a5a30';
+    ctx.fillRect(-4, 16, 8, 6);
+    ctx.fillStyle = '#e0b080';
+    ctx.beginPath();
+    ctx.arc(0, 22, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#2a2a2a';
+    ctx.fillRect(-4, 20, 8, 3);
+
+    ctx.fillStyle = '#3a2a18';
+    ctx.fillRect(-6, 16, 10, 5);
+    ctx.fillStyle = '#2a2a2a';
+    ctx.fillRect(4, 17, 22, 4);
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(24, 18, 8, 2);
+    ctx.fillStyle = '#333';
+    ctx.fillRect(8, 20, 5, 9);
+    ctx.fillStyle = '#444';
+    ctx.fillRect(9, 21, 3, 7);
+    ctx.fillStyle = '#2a2018';
+    ctx.fillRect(15, 20, 4, 6);
+    ctx.fillStyle = '#555';
+    ctx.fillRect(20, 15, 2, 3);
+    ctx.restore();
+
+    ctx.fillStyle = '#e0b080';
+    ctx.fillRect(px + 14, py + 10, 8, 6);
+    ctx.fillStyle = '#c09060';
+    ctx.fillRect(px + 14, py + 10, 8, 2);
+
+    ctx.fillStyle = '#e0b080';
+    ctx.beginPath();
+    ctx.arc(px + 20, py + 8, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#c09060';
+    ctx.beginPath();
+    ctx.arc(px + 22, py + 9, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#e0b080';
+    ctx.beginPath();
+    ctx.arc(px + 20, py + 8, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#4a5a2a';
+    ctx.beginPath();
+    ctx.arc(px + 20, py + 4, 11, Math.PI, 0);
+    ctx.fill();
+    ctx.fillRect(px + 9, py + 2, 22, 6);
+    ctx.fillStyle = '#5a6a3a';
+    ctx.beginPath();
+    ctx.arc(px + 18, py + 2, 6, Math.PI, 0);
+    ctx.fill();
+    ctx.strokeStyle = '#3a4a1a';
+    ctx.lineWidth = 1.2;
+    for (let i = 0; i < 6; i++) {
+      ctx.beginPath();
+      ctx.moveTo(px + 10 + i * 4, py + 2);
+      ctx.lineTo(px + 14 + i * 4, py + 8);
+      ctx.stroke();
     }
+    ctx.fillStyle = '#3a4a1a';
+    ctx.fillRect(px + 10, py + 2, 20, 2);
 
-    function duckStart() {
-      if (gameState === 'playing' && !player.isJumping) {
-        player.isDucking = true;
-      }
-    }
-
-    function duckEnd() {
-      player.isDucking = false;
-    }
-
-    window.addEventListener('keydown', (e) => {
-      if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
-        e.preventDefault();
-        jump();
-      }
-      if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
-        e.preventDefault();
-        duckStart();
-      }
-    });
-
-    window.addEventListener('keyup', (e) => {
-      if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
-        duckEnd();
-      }
-    });
-
-    const jumpBtn = document.getElementById('jumpBtn');
-    const duckBtn = document.getElementById('duckBtn');
-
-    jumpBtn.addEventListener('mousedown', (e) => { e.preventDefault(); jump(); });
-    jumpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); }, { passive: false });
-
-    duckBtn.addEventListener('mousedown', (e) => { e.preventDefault(); duckStart(); });
-    duckBtn.addEventListener('mouseup', (e) => { e.preventDefault(); duckEnd(); });
-    duckBtn.addEventListener('mouseleave', duckEnd);
-    duckBtn.addEventListener('touchstart', (e) => { e.preventDefault(); duckStart(); }, { passive: false });
-    duckBtn.addEventListener('touchend', (e) => { e.preventDefault(); duckEnd(); }, { passive: false });
-    duckBtn.addEventListener('touchcancel', duckEnd);
-
-    canvas.addEventListener('click', () => {
-      if (gameState === 'start' || gameState === 'gameover') {
-        resetGame();
-      }
-    });
-
-    canvas.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      if (gameState === 'start' || gameState === 'gameover') {
-        resetGame();
-      }
-    }, { passive: false });
-
-    initClouds();
-    loop();
-
-  })();
-</script>
-</body>
-</html>
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.arc(px + 23, py + 6, 2,
