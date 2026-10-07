@@ -157,16 +157,6 @@
     scoreSpan.textContent = Math.floor(distance / 10);
   }
 
-  function overlapsObstacle(x, y, w, h) {
-    for (let obs of obstacles) {
-      if (x < obs.x + obs.w && x + w > obs.x &&
-          y < obs.y + obs.h && y + h > obs.y) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   function spawnObstacle() {
     if (missileActive) return;
 
@@ -408,7 +398,7 @@
     if (missile.warnTimer > 0) return;
 
     for (let t of missile.trail) {
-      ctx.fillStyle = `rgba(255, ${80 + t.life * 100}, 0, ${t.life * 0.7})`;
+      ctx.fillStyle = 'rgba(255,' + (80 + t.life * 100) + ',0,' + (t.life * 0.7) + ')';
       ctx.beginPath();
       ctx.arc(t.x, t.y, 4 + t.life * 8, 0, Math.PI * 2);
       ctx.fill();
@@ -488,20 +478,154 @@
     }
   }
 
-  function drawIDFSoldier(px, py, isDucking, isJumping, cycle) {
-    const pw = 36;
-    const bodyH = isDucking ? 26 : 40;
+  function drawStandingSoldier(px, py, pw, bodyH, isJumping, cycle) {
+    const swing = isJumping ? 0 : Math.sin(cycle) * 8;
+    const legSwing = isJumping ? 0 : Math.sin(cycle) * 6;
+
+    ctx.fillStyle = '#4a5a30';
+    ctx.fillRect(px + 8 + legSwing, py + bodyH + 6, 9, 16);
+    ctx.fillStyle = '#2e3a1e';
+    ctx.fillRect(px + 7 + legSwing, py + bodyH + 12, 11, 5);
+    ctx.fillStyle = '#3a4a24';
+    ctx.fillRect(px + 8 + legSwing, py + bodyH + 20, 9, 4);
+    ctx.fillStyle = '#151510';
+    ctx.fillRect(px + 5 + legSwing, py + bodyH + 22, 14, 6);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(px + 5 + legSwing, py + bodyH + 26, 14, 2);
+    ctx.fillStyle = '#4a3a20';
+    ctx.fillRect(px + 6 + legSwing, py + bodyH + 23, 12, 2);
+
+    ctx.fillStyle = '#5a6b3a';
+    ctx.fillRect(px + 19 - legSwing, py + bodyH + 6, 9, 16);
+    ctx.fillStyle = '#3e4a26';
+    ctx.fillRect(px + 18 - legSwing, py + bodyH + 12, 11, 5);
+    ctx.fillStyle = '#4a5a30';
+    ctx.fillRect(px + 19 - legSwing, py + bodyH + 20, 9, 4);
+    ctx.fillStyle = '#1a1a12';
+    ctx.fillRect(px + 16 - legSwing, py + bodyH + 22, 14, 6);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(px + 16 - legSwing, py + bodyH + 26, 14, 2);
+    ctx.fillStyle = '#5a4a28';
+    ctx.fillRect(px + 17 - legSwing, py + bodyH + 23, 12, 2);
+
+    ctx.fillStyle = '#3a4a24';
+    ctx.fillRect(px - 2, py + 16, 8, 22);
+    ctx.fillStyle = '#2a3818';
+    ctx.fillRect(px - 2, py + 20, 8, 3);
+    ctx.fillRect(px - 2, py + 28, 8, 3);
+
+    ctx.fillStyle = '#5a6b3a';
+    ctx.fillRect(px + 6, py + 14, pw - 12, bodyH - 8);
+    ctx.fillStyle = '#4a5a2a';
+    ctx.fillRect(px + 8, py + 16, pw - 16, 16);
+    ctx.fillStyle = '#2e3a1e';
+    ctx.fillRect(px + 8, py + 18, pw - 16, 14);
+    ctx.fillStyle = '#1e2814';
+    ctx.fillRect(px + 10, py + 20, 7, 8);
+    ctx.fillRect(px + 19, py + 20, 7, 8);
+    ctx.fillStyle = '#5a4a28';
+    ctx.fillRect(px + 12, py + 22, 3, 2);
+    ctx.fillRect(px + 21, py + 22, 3, 2);
+    ctx.fillStyle = '#3a2e18';
+    ctx.fillRect(px + 6, py + 32, pw - 12, 4);
+    ctx.fillStyle = '#8a7a3a';
+    ctx.fillRect(px + 16, py + 32, 4, 4);
+    ctx.fillStyle = '#7a8a4a';
+    ctx.fillRect(px + 5, py + 14, 5, 3);
+    ctx.fillRect(px + pw - 10, py + 14, 5, 3);
+    ctx.fillStyle = '#c0a040';
+    ctx.fillRect(px + 6, py + 15, 3, 2);
+    ctx.fillRect(px + pw - 9, py + 15, 3, 2);
 
     ctx.save();
-    if (gameState === 'gameover') ctx.globalAlpha = 0.45;
-
-    if (isDucking) {
-      drawDuckingSoldier(px, py, pw);
-    } else {
-      drawStandingSoldier(px, py, pw, bodyH, isJumping, cycle);
-    }
-
+    ctx.translate(px + 4, py + 18);
+    ctx.rotate(swing * 0.04);
+    ctx.fillStyle = '#4a5a30';
+    ctx.fillRect(-4, 0, 8, 14);
+    ctx.fillStyle = '#2a3618';
+    ctx.fillRect(-4, 12, 8, 4);
+    ctx.fillStyle = '#3a4a24';
+    ctx.fillRect(-4, 16, 8, 6);
+    ctx.fillStyle = '#e0b080';
+    ctx.beginPath();
+    ctx.arc(0, 22, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#2a2a2a';
+    ctx.fillRect(-4, 20, 8, 3);
     ctx.restore();
+
+    ctx.save();
+    ctx.translate(px + pw - 6, py + 18);
+    ctx.rotate(-swing * 0.04);
+    ctx.fillStyle = '#5a6b3a';
+    ctx.fillRect(-4, 0, 8, 14);
+    ctx.fillStyle = '#3a4a24';
+    ctx.fillRect(-4, 12, 8, 4);
+    ctx.fillStyle = '#4a5a30';
+    ctx.fillRect(-4, 16, 8, 6);
+    ctx.fillStyle = '#e0b080';
+    ctx.beginPath();
+    ctx.arc(0, 22, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#2a2a2a';
+    ctx.fillRect(-4, 20, 8, 3);
+
+    ctx.fillStyle = '#3a2a18';
+    ctx.fillRect(-6, 16, 10, 5);
+    ctx.fillStyle = '#2a2a2a';
+    ctx.fillRect(4, 17, 22, 4);
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(24, 18, 8, 2);
+    ctx.fillStyle = '#333333';
+    ctx.fillRect(8, 20, 5, 9);
+    ctx.fillStyle = '#444444';
+    ctx.fillRect(9, 21, 3, 7);
+    ctx.fillStyle = '#2a2018';
+    ctx.fillRect(15, 20, 4, 6);
+    ctx.fillStyle = '#555555';
+    ctx.fillRect(20, 15, 2, 3);
+    ctx.restore();
+
+    ctx.fillStyle = '#e0b080';
+    ctx.fillRect(px + 14, py + 10, 8, 6);
+    ctx.fillStyle = '#c09060';
+    ctx.fillRect(px + 14, py + 10, 8, 2);
+
+    ctx.fillStyle = '#e0b080';
+    ctx.beginPath();
+    ctx.arc(px + 20, py + 8, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#4a5a2a';
+    ctx.beginPath();
+    ctx.arc(px + 20, py + 4, 11, Math.PI, 0);
+    ctx.fill();
+    ctx.fillRect(px + 9, py + 2, 22, 6);
+    ctx.fillStyle = '#5a6a3a';
+    ctx.beginPath();
+    ctx.arc(px + 18, py + 2, 6, Math.PI, 0);
+    ctx.fill();
+    ctx.strokeStyle = '#3a4a1a';
+    ctx.lineWidth = 1.2;
+    for (let i = 0; i < 6; i++) {
+      ctx.beginPath();
+      ctx.moveTo(px + 10 + i * 4, py + 2);
+      ctx.lineTo(px + 14 + i * 4, py + 8);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#3a4a1a';
+    ctx.fillRect(px + 10, py + 2, 20, 2);
+
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.arc(px + 23, py + 6, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(px + pw - 10, py + 26, 6, 5);
+    ctx.fillStyle = '#0038b8';
+    ctx.fillRect(px + pw - 10, py + 27, 6, 2);
+    ctx.fillRect(px + pw - 10, py + 29, 6, 2);
   }
 
   function drawDuckingSoldier(px, py, pw) {
@@ -547,152 +671,159 @@
     ctx.fill();
   }
 
-  function drawStandingSoldier(px, py, pw, bodyH, isJumping, cycle) {
-    const swing = isJumping ? 0 : Math.sin(cycle) * 8;
-    const legSwing = isJumping ? 0 : Math.sin(cycle) * 6;
-
-    ctx.fillStyle = '#4a5a30';
-    ctx.fillRect(px + 8 + legSwing, py + bodyH + 6, 9, 16);
-    ctx.fillStyle = '#2e3a1e';
-    ctx.fillRect(px + 7 + legSwing, py + bodyH + 12, 11, 5);
-    ctx.fillStyle = '#3a4a24';
-    ctx.fillRect(px + 8 + legSwing, py + bodyH + 20, 9, 4);
-    ctx.fillStyle = '#151510';
-    ctx.fillRect(px + 5 + legSwing, py + bodyH + 22, 14, 6);
-    ctx.fillStyle = '#000';
-    ctx.fillRect(px + 5 + legSwing, py + bodyH + 26, 14, 2);
-    ctx.fillStyle = '#4a3a20';
-    ctx.fillRect(px + 6 + legSwing, py + bodyH + 23, 12, 1.5);
-
-    ctx.fillStyle = '#5a6b3a';
-    ctx.fillRect(px + 19 - legSwing, py + bodyH + 6, 9, 16);
-    ctx.fillStyle = '#3e4a26';
-    ctx.fillRect(px + 18 - legSwing, py + bodyH + 12, 11, 5);
-    ctx.fillStyle = '#4a5a30';
-    ctx.fillRect(px + 19 - legSwing, py + bodyH + 20, 9, 4);
-    ctx.fillStyle = '#1a1a12';
-    ctx.fillRect(px + 16 - legSwing, py + bodyH + 22, 14, 6);
-    ctx.fillStyle = '#000';
-    ctx.fillRect(px + 16 - legSwing, py + bodyH + 26, 14, 2);
-    ctx.fillStyle = '#5a4a28';
-    ctx.fillRect(px + 17 - legSwing, py + bodyH + 23, 12, 1.5);
-
-    ctx.fillStyle = '#3a4a24';
-    ctx.fillRect(px - 2, py + 16, 8, 22);
-    ctx.fillStyle = '#2a3818';
-    ctx.fillRect(px - 2, py + 20, 8, 3);
-    ctx.fillRect(px - 2, py + 28, 8, 3);
-
-    ctx.fillStyle = '#5a6b3a';
-    ctx.fillRect(px + 6, py + 14, pw - 12, bodyH - 8);
-    ctx.fillStyle = '#4a5a2a';
-    ctx.fillRect(px + 8, py + 16, pw - 16, 16);
-    ctx.fillStyle = '#2e3a1e';
-    ctx.fillRect(px + 8, py + 18, pw - 16, 14);
-    ctx.fillStyle = '#1e2814';
-    ctx.fillRect(px + 10, py + 20, 7, 8);
-    ctx.fillRect(px + 19, py + 20, 7, 8);
-    ctx.fillStyle = '#5a4a28';
-    ctx.fillRect(px + 12, py + 22, 3, 2);
-    ctx.fillRect(px + 21, py + 22, 3, 2);
-    ctx.fillStyle = '#3a2e18';
-    ctx.fillRect(px + 6, py + 32, pw - 12, 4);
-    ctx.fillStyle = '#8a7a3a';
-    ctx.fillRect(px + 16, py + 32, 4, 4);
-    ctx.fillStyle = '#7a8a4a';
-    ctx.fillRect(px + 5, py + 14, 5, 3);
-    ctx.fillRect(px + pw - 10, py + 14, 5, 3);
-    ctx.fillStyle = '#c0a040';
-    ctx.fillRect(px + 6, py + 15, 3, 1.5);
-    ctx.fillRect(px + pw - 9, py + 15, 3, 1.5);
+  function drawPlayer() {
+    const py = player.isDucking ? GROUND_Y - player.duckH : player.y - player.h;
+    const pw = 36;
+    const bodyH = player.isDucking ? 26 : 40;
 
     ctx.save();
-    ctx.translate(px + 4, py + 18);
-    ctx.rotate(swing * 0.04);
-    ctx.fillStyle = '#4a5a30';
-    ctx.fillRect(-4, 0, 8, 14);
-    ctx.fillStyle = '#2a3618';
-    ctx.fillRect(-4, 12, 8, 4);
-    ctx.fillStyle = '#3a4a24';
-    ctx.fillRect(-4, 16, 8, 6);
-    ctx.fillStyle = '#e0b080';
-    ctx.beginPath();
-    ctx.arc(0, 22, 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#2a2a2a';
-    ctx.fillRect(-4, 20, 8, 3);
-    ctx.restore();
+    if (gameState === 'gameover') ctx.globalAlpha = 0.45;
 
-    ctx.save();
-    ctx.translate(px + pw - 6, py + 18);
-    ctx.rotate(-swing * 0.04);
-    ctx.fillStyle = '#5a6b3a';
-    ctx.fillRect(-4, 0, 8, 14);
-    ctx.fillStyle = '#3a4a24';
-    ctx.fillRect(-4, 12, 8, 4);
-    ctx.fillStyle = '#4a5a30';
-    ctx.fillRect(-4, 16, 8, 6);
-    ctx.fillStyle = '#e0b080';
-    ctx.beginPath();
-    ctx.arc(0, 22, 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#2a2a2a';
-    ctx.fillRect(-4, 20, 8, 3);
-
-    ctx.fillStyle = '#3a2a18';
-    ctx.fillRect(-6, 16, 10, 5);
-    ctx.fillStyle = '#2a2a2a';
-    ctx.fillRect(4, 17, 22, 4);
-    ctx.fillStyle = '#1a1a1a';
-    ctx.fillRect(24, 18, 8, 2);
-    ctx.fillStyle = '#333';
-    ctx.fillRect(8, 20, 5, 9);
-    ctx.fillStyle = '#444';
-    ctx.fillRect(9, 21, 3, 7);
-    ctx.fillStyle = '#2a2018';
-    ctx.fillRect(15, 20, 4, 6);
-    ctx.fillStyle = '#555';
-    ctx.fillRect(20, 15, 2, 3);
-    ctx.restore();
-
-    ctx.fillStyle = '#e0b080';
-    ctx.fillRect(px + 14, py + 10, 8, 6);
-    ctx.fillStyle = '#c09060';
-    ctx.fillRect(px + 14, py + 10, 8, 2);
-
-    ctx.fillStyle = '#e0b080';
-    ctx.beginPath();
-    ctx.arc(px + 20, py + 8, 8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#c09060';
-    ctx.beginPath();
-    ctx.arc(px + 22, py + 9, 6, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#e0b080';
-    ctx.beginPath();
-    ctx.arc(px + 20, py + 8, 8, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#4a5a2a';
-    ctx.beginPath();
-    ctx.arc(px + 20, py + 4, 11, Math.PI, 0);
-    ctx.fill();
-    ctx.fillRect(px + 9, py + 2, 22, 6);
-    ctx.fillStyle = '#5a6a3a';
-    ctx.beginPath();
-    ctx.arc(px + 18, py + 2, 6, Math.PI, 0);
-    ctx.fill();
-    ctx.strokeStyle = '#3a4a1a';
-    ctx.lineWidth = 1.2;
-    for (let i = 0; i < 6; i++) {
-      ctx.beginPath();
-      ctx.moveTo(px + 10 + i * 4, py + 2);
-      ctx.lineTo(px + 14 + i * 4, py + 8);
-      ctx.stroke();
+    if (player.isDucking) {
+      drawDuckingSoldier(PLAYER_X, py, pw);
+    } else {
+      drawStandingSoldier(PLAYER_X, py, pw, bodyH, player.isJumping, runCycle);
     }
-    ctx.fillStyle = '#3a4a1a';
-    ctx.fillRect(px + 10, py + 2, 20, 2);
 
-    ctx.fillStyle = '#1a1a1a';
-    ctx.beginPath();
-    ctx.arc(px + 23, py + 6, 2,
+    ctx.restore();
+  }
+
+  function drawParticles() {
+    for (let p of particles) {
+      ctx.globalAlpha = p.life;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1.0;
+  }
+
+  function drawUI() {
+    if (gameState === 'start') {
+      ctx.fillStyle = 'rgba(10, 20, 30, 0.8)';
+      ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 42px "Courier New", monospace';
+      ctx.fillStyle = '#ffd966';
+      ctx.fillText('🎖️ 士兵跑酷', CANVAS_W / 2, 140);
+      ctx.font = '24px "Courier New", monospace';
+      ctx.fillStyle = '#e0f0b0';
+      ctx.fillText('躲避伊朗导弹的追击！', CANVAS_W / 2, 200);
+      ctx.font = '20px "Courier New", monospace';
+      ctx.fillStyle = '#b8e0a0';
+      ctx.fillText('空格 / ↑ 跳跃    ↓ 下滑', CANVAS_W / 2, 260);
+      ctx.fillStyle = '#ffd966';
+      ctx.font = '26px "Courier New", monospace';
+      ctx.fillText('点击屏幕开始', CANVAS_W / 2, 330);
+      ctx.textAlign = 'left';
+    } else if (gameState === 'gameover') {
+      ctx.fillStyle = 'rgba(20, 10, 5, 0.85)';
+      ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 48px "Courier New", monospace';
+      ctx.fillStyle = '#ff4444';
+      ctx.fillText('💥 ' + deathReason, CANVAS_W / 2, 160);
+      ctx.font = '30px "Courier New", monospace';
+      ctx.fillStyle = '#e0f0b0';
+      ctx.fillText('距离: ' + Math.floor(distance / 10) + ' m', CANVAS_W / 2, 240);
+      if (highScore > 0) {
+        ctx.font = '22px "Courier New", monospace';
+        ctx.fillStyle = '#ffd966';
+        ctx.fillText('最佳: ' + highScore + ' m', CANVAS_W / 2, 290);
+      }
+      ctx.font = '24px "Courier New", monospace';
+      ctx.fillStyle = '#b8e0a0';
+      ctx.fillText('点击重新开始', CANVAS_W / 2, 360);
+      ctx.textAlign = 'left';
+    }
+  }
+
+  function draw() {
+    drawSky();
+    drawClouds();
+    drawGround();
+    drawObstacles();
+    drawMissileWarning();
+    drawMissile();
+    drawPlayer();
+    drawParticles();
+    drawUI();
+  }
+
+  function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  function jump() {
+    if (gameState === 'start') { resetGame(); return; }
+    if (gameState === 'gameover') { resetGame(); return; }
+    if (!player.isJumping && gameState === 'playing') {
+      player.vy = JUMP_FORCE;
+      player.isJumping = true;
+      player.isDucking = false;
+    }
+  }
+
+  function duckStart() {
+    if (gameState === 'playing' && !player.isJumping) {
+      player.isDucking = true;
+    }
+  }
+
+  function duckEnd() {
+    player.isDucking = false;
+  }
+
+  window.addEventListener('keydown', function(e) {
+    if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+      e.preventDefault();
+      jump();
+    }
+    if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+      e.preventDefault();
+      duckStart();
+    }
+  });
+
+  window.addEventListener('keyup', function(e) {
+    if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+      duckEnd();
+    }
+  });
+
+  const jumpBtn = document.getElementById('jumpBtn');
+  const duckBtn = document.getElementById('duckBtn');
+
+  jumpBtn.addEventListener('mousedown', function(e) { e.preventDefault(); jump(); });
+  jumpBtn.addEventListener('touchstart', function(e) { e.preventDefault(); jump(); }, { passive: false });
+
+  duckBtn.addEventListener('mousedown', function(e) { e.preventDefault(); duckStart(); });
+  duckBtn.addEventListener('mouseup', function(e) { e.preventDefault(); duckEnd(); });
+  duckBtn.addEventListener('mouseleave', duckEnd);
+  duckBtn.addEventListener('touchstart', function(e) { e.preventDefault(); duckStart(); }, { passive: false });
+  duckBtn.addEventListener('touchend', function(e) { e.preventDefault(); duckEnd(); }, { passive: false });
+  duckBtn.addEventListener('touchcancel', duckEnd);
+
+  canvas.addEventListener('click', function() {
+    if (gameState === 'start' || gameState === 'gameover') {
+      resetGame();
+    }
+  });
+
+  canvas.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    if (gameState === 'start' || gameState === 'gameover') {
+      resetGame();
+    }
+  }, { passive: false });
+
+  initClouds();
+  loop();
+
+})();
+</script>
+</body>
+</html>
