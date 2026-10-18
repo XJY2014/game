@@ -13,7 +13,6 @@
         var saved = localStorage.getItem('gl:theme');
         var dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         document.documentElement.dataset.theme = saved || (dark ? 'dark' : 'light');
-        // 视图模式
         var view = localStorage.getItem('gl:view');
         if (view) document.documentElement.dataset.view = view;
       } catch (e) {
@@ -721,13 +720,23 @@
           color: 'rgba(74, 222, 128, .4)'
         },
         {
-          id: 'game4',
-          name: '游戏 4',
-          file: 'game4.html',
-          icon: '🎲',
-          desc: '更多精彩，敬请期待。',
-          tags: ['未知'],
+          id: 'tower-defense',
+          name: '塔防',
+          file: 'TowerDefense.html',
+          icon: '🏰',
+          desc: '建造防御塔，抵挡 20 波敌人进攻。',
+          tags: ['策略', '塔防'],
           color: 'rgba(179, 140, 255, .45)'
+        },
+        {
+          id: 'coming-soon',
+          name: '敬请期待',
+          file: '#',
+          icon: '🎲',
+          desc: '更多精彩游戏正在制作中，敬请期待。',
+          tags: ['即将上线'],
+          color: 'rgba(140, 160, 180, .35)',
+          disabled: true
         }
       ];
 
@@ -752,7 +761,6 @@
       const overlay = document.getElementById('loadingOverlay');
       const loadingText = document.getElementById('loadingText');
 
-      // 状态
       let favorites = new Set();
       let recentMap = {};
       let currentView = root.dataset.view || 'grid';
@@ -773,15 +781,11 @@
 
       /* ===================== 初始化状态 ===================== */
       (function initState() {
-        // 收藏
         const savedFav = loadJSON(KEYS.fav, []);
         if (Array.isArray(savedFav)) favorites = new Set(savedFav);
-        // 最近
         recentMap = loadJSON(KEYS.recent, {}) || {};
-        // 视图
         currentView = localStorage.getItem(KEYS.view) || 'grid';
         root.dataset.view = currentView;
-        // 主题
         applyTheme(root.dataset.theme || 'light');
       })();
 
@@ -831,7 +835,7 @@
         if (favorites.has(id)) favorites.delete(id);
         else favorites.add(id);
         saveJSON(KEYS.fav, Array.from(favorites));
-        renderGames(); // 重新渲染以更新收藏按钮和统计
+        renderGames();
       }
 
       /* ===================== 最近游玩 ===================== */
@@ -842,7 +846,7 @@
 
       /* ===================== 搜索高亮 ===================== */
       function escapeHTML(str) {
-        return str.replace(/[&<>"']/g, function (m) {
+        return String(str).replace(/[&<>"']/g, function (m) {
           return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
         });
       }
@@ -865,7 +869,6 @@
           return haystack.indexOf(q) !== -1;
         });
 
-        // 排序
         if (sortMode === 'name') {
           list.sort(function (a, b) { return a.name.localeCompare(b.name, 'zh'); });
         } else if (sortMode === 'recent') {
@@ -891,12 +894,17 @@
         const isRecent = !!recentMap[game.id];
         const card = document.createElement('a');
         card.className = 'game-card';
-        card.href = game.file;
+        card.href = game.disabled ? 'javascript:void(0)' : game.file;
         card.dataset.id = game.id;
         card.dataset.search = (game.name + ' ' + game.desc + ' ' + game.tags.join(' ')).toLowerCase();
         card.style.setProperty('--i', index);
         card.style.setProperty('--card-glow', game.color || 'rgba(108,176,255,.35)');
         card.setAttribute('aria-label', game.name + ' — ' + game.desc);
+
+        if (game.disabled) {
+          card.style.opacity = '0.72';
+          card.style.cursor = 'default';
+        }
 
         const titleHTML = highlight(game.name, searchQuery);
         const descHTML = highlight(game.desc, searchQuery);
@@ -907,11 +915,12 @@
         card.innerHTML =
           '<div class="card-top">' +
             '<div class="card-icon" aria-hidden="true">' + game.icon + '</div>' +
-            '<button class="fav-btn' + (isFav ? ' active' : '') + '" type="button" ' +
-              'title="' + (isFav ? '取消收藏' : '收藏') + '" ' +
-              'aria-label="' + (isFav ? '取消收藏' : '收藏') + '">' +
-              (isFav ? '★' : '☆') +
-            '</button>' +
+            (game.disabled ? '' :
+              '<button class="fav-btn' + (isFav ? ' active' : '') + '" type="button" ' +
+                'title="' + (isFav ? '取消收藏' : '收藏') + '" ' +
+                'aria-label="' + (isFav ? '取消收藏' : '收藏') + '">' +
+                (isFav ? '★' : '☆') +
+              '</button>') +
           '</div>' +
           '<div class="card-body">' +
             '<h3 class="card-title">' + titleHTML + '</h3>' +
@@ -920,44 +929,45 @@
           '</div>' +
           '<div class="card-footer">' +
             '<span class="card-meta">' +
-              (isRecent ? '<span class="recent-dot"></span>最近玩过' : '') +
+              (isRecent && !game.disabled ? '<span class="recent-dot"></span>最近玩过' : '') +
             '</span>' +
-            '<span class="launch-hint">启动 →</span>' +
+            (game.disabled ? '<span class="launch-hint" style="opacity:1;transform:none;color:var(--text-dim)">即将上线</span>'
+                           : '<span class="launch-hint">启动 →</span>') +
           '</div>';
 
-        // 收藏按钮
-        const favBtn = card.querySelector('.fav-btn');
-        favBtn.addEventListener('click', function (e) {
-          e.stopPropagation();
-          e.preventDefault();
-          toggleFavorite(game.id, e);
-        });
+        if (!game.disabled) {
+          const favBtn = card.querySelector('.fav-btn');
+          if (favBtn) {
+            favBtn.addEventListener('click', function (e) {
+              e.stopPropagation();
+              e.preventDefault();
+              toggleFavorite(game.id, e);
+            });
+          }
 
-        // 点击启动
-        card.addEventListener('click', function (e) {
-          // 如果点的是收藏按钮，已经阻止冒泡
-          e.preventDefault();
-          launchGame(game);
-        });
+          card.addEventListener('click', function (e) {
+            e.preventDefault();
+            launchGame(game);
+          });
 
-        // 3D 倾斜 & 光效跟随
-        if (currentView === 'grid' && window.matchMedia('(hover: hover)').matches) {
-          card.addEventListener('mousemove', function (e) {
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            const cx = rect.width / 2;
-            const cy = rect.height / 2;
-            const rx = ((y - cy) / cy) * -8;
-            const ry = ((x - cx) / cx) * 8;
-            card.style.transform =
-              'rotateX(' + rx + 'deg) rotateY(' + ry + 'deg) translateZ(8px) scale(1.02)';
-            card.style.setProperty('--mx', (x / rect.width * 100) + '%');
-            card.style.setProperty('--my', (y / rect.height * 100) + '%');
-          });
-          card.addEventListener('mouseleave', function () {
-            card.style.transform = '';
-          });
+          if (currentView === 'grid' && window.matchMedia('(hover: hover)').matches) {
+            card.addEventListener('mousemove', function (e) {
+              const rect = card.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              const y = e.clientY - rect.top;
+              const cx = rect.width / 2;
+              const cy = rect.height / 2;
+              const rx = ((y - cy) / cy) * -8;
+              const ry = ((x - cx) / cx) * 8;
+              card.style.transform =
+                'rotateX(' + rx + 'deg) rotateY(' + ry + 'deg) translateZ(8px) scale(1.02)';
+              card.style.setProperty('--mx', (x / rect.width * 100) + '%');
+              card.style.setProperty('--my', (y / rect.height * 100) + '%');
+            });
+            card.addEventListener('mouseleave', function () {
+              card.style.transform = '';
+            });
+          }
         }
 
         return card;
@@ -976,7 +986,7 @@
       }
 
       function updateStats() {
-        const total = GAMES.length;
+        const total = GAMES.filter(g => !g.disabled).length;
         const favCount = favorites.size;
         statsEl.textContent = total + ' 款游戏 · ' + favCount + ' 个收藏';
       }
@@ -984,22 +994,18 @@
       /* ===================== 启动游戏（带加载过渡） ===================== */
       let launching = false;
       function launchGame(game) {
-        if (launching) return;
+        if (launching || game.disabled) return;
         launching = true;
         markRecent(game.id);
-        // 显示加载层
         loadingText.textContent = '正在启动「' + game.name + '」…';
         overlay.hidden = false;
-        // 短暂延迟后跳转，让动画显示出来
         setTimeout(function () {
           window.location.href = game.file;
         }, 650);
       }
 
-      /* ===================== 搜索 & 排序事件 ===================== */
-      function refresh() {
-        renderGames();
-      }
+      /* ===================== 事件 ===================== */
+      function refresh() { renderGames(); }
 
       searchInput.addEventListener('input', function () {
         searchQuery = searchInput.value;
@@ -1018,8 +1024,9 @@
         refresh();
       });
 
+      /* ===================== 随机游戏 ===================== */
       function launchRandom() {
-        const list = getVisibleGames();
+        const list = getVisibleGames().filter(g => !g.disabled);
         if (!list.length) return;
         const pick = list[Math.floor(Math.random() * list.length)];
         launchGame(pick);
@@ -1027,6 +1034,7 @@
 
       randomBtn.addEventListener('click', launchRandom);
 
+      /* ===================== 键盘快捷键 ===================== */
       document.addEventListener('keydown', function (e) {
         const tag = (document.activeElement.tagName || '').toUpperCase();
         const isTyping = /INPUT|TEXTAREA|SELECT/.test(tag);
@@ -1045,7 +1053,10 @@
           launchRandom();
         }
       });
+
+      /* ===================== 初始渲染 ===================== */
       renderGames();
+
       let resizeTimer;
       window.addEventListener('resize', function () {
         clearTimeout(resizeTimer);
