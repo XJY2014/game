@@ -1,81 +1,519 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的游戏库</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, sans-serif;
-        }
-        body {
-            /* 淡冷色调背景 */
-            background-color: #edf4fb;
-            color: #2c3e50;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px 20px;
-            /* 页面淡入效果 */
-            animation: fadeIn 0.8s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        h1 {
-            color: #345b82;
-            margin-bottom: 40px;
-            text-align: center;
-        }
-        .game-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 24px;
-            max-width: 700px;
-            width: 100%;
-        }
-        .game-btn {
-            padding: 20px 12px;
-            background: linear-gradient(135deg, #b8d4ee, #98bedc);
-            border: none;
-            border-radius: 14px;
-            font-size: 18px;
-            color: #1f3a52;
-            font-weight: 500;
-            cursor: pointer;
-            box-shadow: 0 4px 10px #c2d8ec;
-            transition: all 0.3s ease;
-        }
-        .game-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 18px #b0cbe3;
-            background: linear-gradient(135deg, #a9cbe8, #86b2d6);
-        }
-        .game-btn:active {
-            transform: translateY(2px);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>我的游戏库</title>
+
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('game-library:theme');
+        var dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.dataset.theme = saved || (dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.dataset.theme = 'light';
+      }
+    })();
+  </script>
+
+  <style>
+    :root {
+      --bg: #eef4fb;
+      --glow-1: rgba(150, 196, 238, .55);
+      --glow-2: rgba(186, 214, 242, .55);
+      --surface: rgba(255, 255, 255, .75);
+      --border: rgba(140, 175, 210, .35);
+      --text: #2c3e50;
+      --text-dim: #5d778f;
+      --accent: #3b6f9e;
+      --card-1: #c6dcf1;
+      --card-2: #9dc2e2;
+      --card-1-h: #b4d2ed;
+      --card-2-h: #86b2d6;
+      --shadow-sm: 0 2px 8px rgba(120, 155, 190, .18);
+      --shadow-md: 0 10px 24px rgba(120, 155, 190, .28);
+      --shadow-lg: 0 16px 36px rgba(105, 145, 185, .34);
+      --radius: 18px;
+    }
+
+    html[data-theme="dark"] {
+      --bg: #111a24;
+      --glow-1: rgba(52, 100, 150, .35);
+      --glow-2: rgba(70, 110, 160, .25);
+      --surface: rgba(30, 44, 60, .80);
+      --border: rgba(120, 160, 200, .22);
+      --text: #e3edf7;
+      --text-dim: #93a9bd;
+      --accent: #7fb4e4;
+      --card-1: #2c4259;
+      --card-2: #223346;
+      --card-1-h: #365273;
+      --card-2-h: #294159;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, .35);
+      --shadow-md: 0 10px 24px rgba(0, 0, 0, .42);
+      --shadow-lg: 0 16px 36px rgba(0, 0, 0, .52);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    [hidden] { display: none !important; }
+
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 48px 20px 56px;
+      font-family: system-ui, -apple-system, "Segoe UI", "PingFang SC",
+                   "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(900px 520px at 12% -12%, var(--glow-1), transparent 65%),
+        radial-gradient(820px 520px at 105% 0%, var(--glow-2), transparent 60%);
+      background-attachment: fixed;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color .4s ease, color .3s ease;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      margin-bottom: 28px;
+      animation: fadeDown .6s cubic-bezier(.2, .8, .3, 1) both;
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    h1 {
+      font-size: clamp(1.5rem, 4.5vw, 2rem);
+      font-weight: 700;
+      letter-spacing: .5px;
+      color: var(--accent);
+      transition: color .3s ease;
+    }
+
+    .icon-btn {
+      flex: none;
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      font-size: 19px;
+      line-height: 1;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: transform .25s ease, box-shadow .25s ease,
+                  background .3s ease, border-color .3s ease;
+    }
+    .icon-btn:hover  { transform: rotate(-14deg) scale(1.08); box-shadow: var(--shadow-md); }
+    .icon-btn:active { transform: scale(.94); }
+    .icon-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1 1 220px;
+      max-width: 340px;
+    }
+
+    .search-box::before {
+      content: "🔍";
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 13px;
+      opacity: .75;
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px 12px 42px;
+      font: inherit;
+      font-size: 15px;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      outline: none;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: border-color .2s ease, box-shadow .2s ease, background .3s ease;
+    }
+    .search-input::placeholder { color: var(--text-dim); }
+    .search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+
+    .count {
+      margin-left: auto;
+      font-size: 13px;
+      color: var(--text-dim);
+      white-space: nowrap;
+    }
+
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+    }
+
+    .game-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: 148px;
+      padding: 22px 20px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--card-1), var(--card-2));
+      color: var(--text);
+      text-decoration: none;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      isolation: isolate;
+      transition: transform .28s cubic-bezier(.2, .8, .3, 1),
+                  box-shadow .28s ease, background .28s ease,
+                  border-color .3s ease;
+      animation: cardIn .5s cubic-bezier(.2, .8, .3, 1) backwards;
+      animation-delay: calc(var(--i, 0) * 60ms);
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(14px) scale(.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .game-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg,
+        transparent 32%, rgba(255, 255, 255, .28) 50%, transparent 68%);
+      transform: translateX(-130%);
+      transition: transform .75s ease;
+      pointer-events: none;
+    }
+
+    .game-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg);
+      background: linear-gradient(135deg, var(--card-1-h), var(--card-2-h));
+    }
+    .game-card:hover::after { transform: translateX(130%); }
+    .game-card:active { transform: translateY(-1px) scale(.99); }
+    .game-card:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .card-icon {
+      font-size: 34px;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: .3px;
+    }
+
+    .card-desc {
+      margin-top: 4px;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    .card-arrow {
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
+      font-size: 16px;
+      color: var(--accent);
+      opacity: 0;
+      transform: translateX(-6px);
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    .game-card:hover .card-arrow,
+    .game-card:focus-visible .card-arrow {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .card-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 3px 9px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 999px;
+      color: #1e6b45;
+      background: rgba(255, 255, 255, .65);
+      backdrop-filter: blur(4px);
+    }
+    html[data-theme="dark"] .card-badge {
+      color: #8fe0b0;
+      background: rgba(255, 255, 255, .14);
+    }
+
+    .empty {
+      padding: 60px 20px;
+      text-align: center;
+      font-size: 15px;
+      color: var(--text-dim);
+    }
+
+    .footer {
+      margin-top: 44px;
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--text-dim);
+      line-height: 2;
+    }
+
+    kbd {
+      padding: 2px 6px;
+      font-family: inherit;
+      font-size: 11px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--surface);
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 28px 14px 40px; }
+      .game-grid { grid-template-columns: 1fr; gap: 14px; }
+      .game-card { min-height: 128px; padding: 18px 16px; }
+      .card-icon { font-size: 28px; margin-bottom: 10px; }
+      .count { margin-left: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .001ms !important;
+        animation-delay: 0ms !important;
+        transition-duration: .001ms !important;
+      }
+    }
+  </style>
 </head>
+
 <body>
-    <h1>🎮 我的游戏库</h1>
-    <div class="game-container">
-        <a href="PixelAdventure.html">
-            <button class="game-btn">像素冒险</button>
-        </a>
-        <a href="Soldierparkour.html">
-            <button class="game-btn">士兵跑酷</button>
-        </a>
-        <a href="Breakout.html">
-            <button class="game-btn">打砖块</button>
-        </a>
-        <a href="game4.html">
-            <button class="game-btn">游戏 4</button>
-        </a>
-    </div>
+  <div class="page">
+    <header class="header">
+      <div class="title-row">
+        <h1>🎮 我的游戏库</h1>
+        <button id="themeToggle" class="icon-btn" type="button"
+                aria-label="切换主题" title="切换主题">🌙</button>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-box">
+          <input id="search" class="search-input" type="search"
+                 placeholder="搜索游戏…" autocomplete="off"
+                 aria-label="搜索游戏">
+        </div>
+        <p id="gameCount" class="count" aria-live="polite">共 0 款游戏</p>
+      </div>
+    </header>
+
+    <main>
+      <div id="gameGrid" class="game-grid"></div>
+      <p id="emptyState" class="empty" hidden>😶 没有找到匹配的游戏</p>
+    </main>
+
+    <footer class="footer">
+      按 <kbd>/</kbd> 快速搜索 · 按 <kbd>Esc</kbd> 清空条件
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const GAMES = [
+        {
+          id: 'pixel-adventure',
+          name: '像素冒险',
+          file: 'PixelAdventure.html',
+          icon: '👾',
+          desc: '像素风横版闯关冒险'
+        },
+        {
+          id: 'soldier-parkour',
+          name: '士兵跑酷',
+          file: 'Soldierparkour.html',
+          icon: '🏃',
+          desc: '闪避障碍，一路狂奔'
+        },
+        {
+          id: 'breakout',
+          name: '打砖块',
+          file: 'Breakout.html',
+          icon: '🧱',
+          desc: '经典弹球，消掉所有砖块'
+        },
+        {
+          id: 'game4',
+          name: '游戏 4',
+          file: 'game4.html',
+          icon: '🎲',
+          desc: '更多精彩，敬请期待'
+        }
+      ];
+
+      const THEME_KEY = 'game-library:theme';
+      const RECENT_KEY = 'game-library:recent';
+
+      const root = document.documentElement;
+      const grid = document.getElementById('gameGrid');
+      const searchInput = document.getElementById('search');
+      const countEl = document.getElementById('gameCount');
+      const emptyEl = document.getElementById('emptyState');
+      const themeBtn = document.getElementById('themeToggle');
+
+      function applyTheme(theme) {
+        root.dataset.theme = theme;
+        const isDark = theme === 'dark';
+        themeBtn.textContent = isDark ? '☀️' : '🌙';
+        const label = isDark ? '切换到浅色模式' : '切换到深色模式';
+        themeBtn.setAttribute('aria-label', label);
+        themeBtn.title = label;
+      }
+
+      themeBtn.addEventListener('click', function () {
+        const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+        applyTheme(next);
+        try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+      });
+
+      try {
+        window.matchMedia('(prefers-color-scheme: dark)')
+          .addEventListener('change', function (e) {
+            if (!localStorage.getItem(THEME_KEY)) {
+              applyTheme(e.matches ? 'dark' : 'light');
+            }
+          });
+      } catch (e) { /* 旧浏览器忽略 */ }
+
+      applyTheme(root.dataset.theme || 'light');
+
+      function getRecentMap() {
+        try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || {}; }
+        catch (e) { return {}; }
+      }
+
+      function markRecent(id) {
+        try {
+          const map = getRecentMap();
+          map[id] = Date.now();
+          localStorage.setItem(RECENT_KEY, JSON.stringify(map));
+        } catch (e) { /* 隐私模式下忽略 */ }
+      }
+      function createCard(game, index, isRecent) {
+        const a = document.createElement('a');
+        a.className = 'game-card';
+        a.href = game.file;
+        a.style.setProperty('--i', index);
+        a.dataset.search = (game.name + ' ' + game.desc + ' ' + game.id).toLowerCase();
+        a.setAttribute('aria-label', game.name + ' — ' + game.desc);
+
+        a.innerHTML =
+          '<span class="card-icon" aria-hidden="true">' + game.icon + '</span>' +
+          '<span class="card-title">' + game.name + '</span>' +
+          '<span class="card-desc">' + game.desc + '</span>' +
+          '<span class="card-arrow" aria-hidden="true">→</span>' +
+          (isRecent ? '<span class="card-badge">最近</span>' : '');
+
+        a.addEventListener('click', function () { markRecent(game.id); });
+        return a;
+      }
+
+      function renderGames() {
+        const recentMap = getRecentMap();
+        const frag = document.createDocumentFragment();
+
+        GAMES.forEach(function (game, i) {
+          frag.appendChild(createCard(game, i, Boolean(recentMap[game.id])));
+        });
+
+        grid.appendChild(frag);
+        applyFilter();
+      }
+
+      function applyFilter() {
+        const q = searchInput.value.trim().toLowerCase();
+        let visible = 0;
+
+        for (const card of grid.children) {
+          const match = !q || card.dataset.search.indexOf(q) !== -1;
+          card.hidden = !match;
+          if (match) visible++;
+        }
+
+        countEl.textContent = '共 ' + visible + ' 款游戏';
+        emptyEl.hidden = visible !== 0;
+      }
+
+      searchInput.addEventListener('input', applyFilter);
+
+      document.addEventListener('keydown', function (e) {
+        const isTyping = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+
+        if (e.key === '/' && !isTyping) {
+          e.preventDefault();
+          searchInput.focus();
+          searchInput.select();
+        } else if (e.key === 'Escape' && document.activeElement === searchInput) {
+          searchInput.value = '';
+          applyFilter();
+          searchInput.blur();
+        }
+      });
+
+      renderGames();
+    })();
+  </script>
 </body>
 </html>
