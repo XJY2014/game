@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>金字塔搜打撤 · Pyramid Raid</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+  body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(1200px 800px at 30% 0%, #2a2016, #0e0b08 70%);
+    font-family: 'Courier New', Courier, monospace;
+    color: #e8dcc0;
+    padding: 10px;
+    overflow: hidden;
+  }
+  .game-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 860px;
+    background: #1a1410;
+    border-radius: 20px;
+    padding: 14px;
+    box-shadow: 0 16px 0 #0a0806, 0 24px 60px rgba(0,0,0,.8),
+                inset 0 0 0 2px #3d2f22;
+  }
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .back-btn {
+    background: #3d2f22;
+    color: #e8dcc0;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 14px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #1a1410;
+    transition: all .08s ease;
+  }
+  .back-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #1a1410; }
+  .back-btn:hover { background: #4d3b2a; }
+
+  .stats { display: flex; gap: 8px; flex-wrap: wrap; }
+  .stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    background: #2a2016;
+    border: 1px solid #4a3826;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: bold;
+    white-space: nowrap;
+  }
+  .stat-pill .val { color: #ffd966; }
+  .stat-pill.hp .val { color: #ff6b6b; }
+  .stat-pill.risk .val { color: #ff9f43; }
+  .stat-pill.bag .val { color: #7ee787; }
+
+  .canvas-holder {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 3px #3d2f22, 0 6px 0 #0a0806;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: #0f0c09;
+    cursor: pointer;
+    touch-action: none;
+  }
+
+  /* 房间浮层提示 */
+  .hover-tip {
+    position: absolute;
+    pointer-events: none;
+    padding: 6px 12px;
+    background: rgba(20, 16, 12, .94);
+    border: 1px solid #6b5436;
+    border-radius: 10px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #e8dcc0;
+    white-space: nowrap;
+    z-index: 30;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity .12s ease, transform .12s ease;
+    box-shadow: 0 6px 20px rgba(0,0,0,.6);
+  }
+  .hover-tip.show { opacity: 1; transform: translateY(0); }
+  .hover-tip .name { font-weight: bold; color: #ffd966; }
+  .hover-tip .desc { color: #a8957a; font-size: 11.5px; }
+
+  /* 消息日志 */
+  .log-box {
+    margin-top: 10px;
+    height: 76px;
+    overflow-y: auto;
+    padding: 8px 12px;
+    background: #120e0a;
+    border: 1px solid #3d2f22;
+    border-radius: 12px;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: #a8957a;
+    scrollbar-width: thin;
+  }
+  .log-box::-webkit-scrollbar { width: 6px; }
+  .log-box::-webkit-scrollbar-thumb { background: #3d2f22; border-radius: 3px; }
+  .log-box .line { animation: logIn .25s ease both; }
+  .log-box .line.good { color: #7ee787; }
+  .log-box .line.warn { color: #ff9f43; }
+  .log-box .line.bad { color: #ff6b6b; }
+  .log-box .line.highlight { color: #ffd966; }
+  @keyframes logIn { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: translateX(0); } }
+
+  /* 底部按钮 */
+  .action-bar {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .action-btn {
+    flex: 1 1 120px;
+    padding: 12px 10px;
+    border: none;
+    border-radius: 12px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #1a1410;
+    background: linear-gradient(135deg, #ffd966, #e0a83a);
+    box-shadow: 0 5px 0 #8a6a1f;
+    transition: all .08s ease;
+    letter-spacing: .5px;
+  }
+  .action-btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 #8a6a1f; }
+  .action-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .action-btn.danger {
+    color: #fff;
+    background: linear-gradient(135deg, #ff6b6b, #c0392b);
+    box-shadow: 0 5px 0 #7a1f14;
+  }
+  .action-btn.danger:active:not(:disabled) { box-shadow: 0 1px 0 #7a1f14; }
+  .action-btn.neutral {
+    color: #e8dcc0;
+    background: #3d2f22;
+    box-shadow: 0 5px 0 #1a1410;
+  }
+  .action-btn.neutral:active:not(:disabled) { box-shadow: 0 1px 0 #1a1410; }
+
+  /* 结算遮罩 */
+  .overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 24px;
+    background: rgba(10, 8, 6, .92);
+    backdrop-filter: blur(8px);
+    border-radius: 20px;
+    text-align: center;
+  }
+  .overlay.hidden { display: none; }
+  .overlay h2 { font-size: clamp(22px, 4.5vw, 34px); letter-spacing: 2px; }
+  .overlay h2.win { color: #7ee787; text-shadow: 0 0 20px rgba(126,231,135,.4); }
+  .overlay h2.lose { color: #ff6b6b; text-shadow: 0 0 20px rgba(255,107,107,.4); }
+  .overlay .sub { color: #a8957a; font-size: 14px; line-height: 1.8; }
+  .overlay .loot-list { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 420px; }
+  .overlay .loot-item {
+    padding: 5px 12px;
+    background: #2a2016;
+    border: 1px solid #4a3826;
+    border-radius: 999px;
+    font-size: 13px;
+    color: #ffd966;
+  }
+  .overlay .total { font-size: 18px; font-weight: bold; color: #ffd966; }
+  .overlay button {
+    padding: 12px 34px;
+    border: none;
+    border-radius: 14px;
+    font: inherit;
+    font-size: 16px;
+    font-weight: bold;
+    color: #1a1410;
+    background: linear-gradient(135deg, #ffd966, #e0a83a);
+    box-shadow: 0 6px 0 #8a6a1f;
+    cursor: pointer;
+    transition: all .08s ease;
+  }
+  .overlay button:active { transform: translateY(4px); box-shadow: 0 2px 0 #8a6a1f; }
+
+  @media (max-width: 560px) {
+    .game-wrap { padding: 10px; border-radius: 16px; }
+    .stats { gap: 5px; }
+    .stat-pill { padding: 4px 8px; font-size: 11px; }
+    .action-btn { font-size: 13px; padding: 11px 8px; }
+    .log-box { height: 64px; font-size: 11.5px; }
+  }
+</style>
+</head>
+<body>
+<div class="game-wrap">
+  <div class="top-bar">
+    <a class="back-btn" href="index.html">← 返回</a>
+    <div class="stats">
+      <div class="stat-pill hp">❤️ <span class="val" id="hpVal">100</span></div>
+      <div class="stat-pill risk">⚠️ <span class="val" id="riskVal">0</span></div>
+      <div class="stat-pill bag">🎒 <span class="val" id="bagVal">0</span></div>
+      <div class="stat-pill">💰 <span class="val" id="goldVal">0</span></div>
+    </div>
+  </div>
+
+  <div class="canvas-holder">
+    <canvas id="game" width="820" height="520"></canvas>
+    <div class="hover-tip" id="hoverTip">
+      <div class="name"></div>
+      <div class="desc"></div>
+    </div>
+  </div>
+
+  <div class="log-box" id="logBox"></div>
+
+  <div class="action-bar">
+    <button class="action-btn danger" id="extractBtn">🚪 撤离 (需返回入口)</button>
+    <button class="action-btn neutral" id="healBtn">💊 使用医疗包</button>
+  </div>
+
+  <!-- 结算遮罩 -->
+  <div class="overlay hidden" id="overlay">
+    <h2 id="overlayTitle">撤离成功</h2>
+    <p class="sub" id="overlayDesc"></p>
+    <div class="loot-list" id="lootList"></div>
+    <p class="total" id="totalLoot"></p>
+    <button id="overlayBtn">再次进入</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ===================== 常量 ===================== */
+  const W = 820;
+  const H = 520;
+
+  // 房间类型定义
+  const ROOM_TYPES = {
+    start: {
+      name: '入口大厅',
+      icon: '🚪',
+      color: '#6b5436',
+      desc: '金字塔的入口，安全区域。',
+      loot: []
+    },
+    tomb: {
+      name: '墓室',
+      icon: '⚰️',
+      color: '#8a6a3a',
+      desc: '可能有陪葬品，也可能有守卫。',
+      loot: ['gold', 'relic', 'gold']
+    },
+    treasure: {
+      name: '藏宝室',
+      icon: '💎',
+      color: '#c9a227',
+      desc: '高价值物资，风险也更高。',
+      loot: ['relic', 'relic', 'gold', 'gold']
+    },
+    supply: {
+      name: '补给室',
+      icon: '📦',
+      color: '#4a7a5a',
+      desc: '能找到医疗包和少量金币。',
+      loot: ['medkit', 'gold']
+    },
+    trap: {
+      name: '陷阱走廊',
+      icon: '🕳️',
+      color: '#8a3a3a',
+      desc: '小心！可能触发陷阱。',
+      loot: ['gold', 'medkit']
+    },
+    guard: {
+      name: '守卫房',
+      icon: '🗿',
+      color: '#a04a3a',
+      desc: '石像守卫在此巡逻，战斗风险高。',
+      loot: ['relic', 'gold', 'medkit']
+    },
+    dark: {
+      name: '黑暗回廊',
+      icon: '🌑',
+      color: '#3a3a4a',
+      desc: '视野受限，物资未知。',
+      loot: ['gold', 'relic', 'medkit', 'gold']
+    },
+    exit: {
+      name: '出口通道',
+      icon: '🏛️',
+      color: '#5a7a4a',
+      desc: '通往地面的通道，撤离点附近。',
+      loot: []
+    }
+  };
+
+  // 物资定义
+  const ITEMS = {
+    gold: { name: '金币', icon: '🪙', value: 18 },
+    relic: { name: '遗物', icon: '🏺', value: 45 },
+    medkit: { name: '医疗包', icon: '💊', value: 25, heal: 30 }
+  };
+
+  /* ===================== 状态 ===================== */
+  const state = {
+    phase: 'intro',          // intro | exploring | result
+    hp: 100,
+    maxHp: 100,
+    risk: 0,                 // 0~100，越高越危险
+    gold: 0,                 // 本局金币（撤离后结算）
+    bag: [],                 // 本局已拾取物资
+    currentRoom: null,
+    rooms: [],
+    links: [],
+    visited: new Set(),
+    hoverRoom: null,
+    hoverPos: { x: 0, y: 0 },
+    logLines: [],
+    extracted: false,
+    died: false,
+    animTime: 0,
+    shake: 0,
+    floatTexts: [],
+    particles: [],
+    // 仓库（跨局持久化）
+    stash: { gold: 0, relics: 0, medkits: 0, runs: 0, bestLoot: 0 }
+  };
+
+  /* ===================== DOM ===================== */
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const hpVal = document.getElementById('hpVal');
+  const riskVal = document.getElementById('riskVal');
+  const bagVal = document.getElementById('bagVal');
+  const goldVal = document.getElementById('goldVal');
+  const logBox = document.getElementById('logBox');
+  const hoverTip = document.getElementById('hoverTip');
+  const extractBtn = document.getElementById('extractBtn');
+  const healBtn = document.getElementById('healBtn');
+  const overlay = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlayTitle');
+  const overlayDesc = document.getElementById('overlayDesc');
+  const lootList = document.getElementById('lootList');
+  const totalLoot = document.getElementById('totalLoot');
+  const overlayBtn = document.getElementById('overlayBtn');
+
+  /* ===================== 工具 ===================== */
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const randInt = (a, b) => Math.floor(rand(a, b + 1));
+  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+
+  function addLog(text, type) {
+    state.logLines.push({ text, type: type || '' });
+    if (state.logLines.length > 60) state.logLines.shift();
+    renderLog();
+  }
+
+  function renderLog() {
+    logBox.innerHTML = state.logLines.map(l =>
+      '<div class="line ' + l.type + '">' + l.text + '</div>'
+    ).join('');
+    logBox.scrollTop = logBox.scrollHeight;
+  }
+
+  function addFloatText(x, y, text, color) {
+    state.floatTexts.push({
+      x, y, text,
+      color: color || '#ffd966',
+      life: 1, maxLife: 1
+    });
+  }
+
+  function addParticles(x, y, color, count, speed) {
+    for (let i = 0; i < count; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const s = (speed || 80) * (0.4 + Math.random() * 0.8);
+      state.particles.push({
+        x, y,
+        vx: Math.cos(a) * s,
+        vy: Math.sin(a) * s,
+        life: 0.6 + Math.random() * 0.4,
+        maxLife: 1,
+        color,
+        size: 2 + Math.random() * 3
+      });
+    }
+  }
+
+  function updateHUD() {
+    hpVal.textContent = Math.round(state.hp);
+    riskVal.textContent = Math.round(state.risk);
+    bagVal.textContent = state.bag.length;
+    goldVal.textContent = state.gold;
+
+    // 撤离按钮：只能在起点房间且携带物资时可用
+    const atStart = state.currentRoom && state.currentRoom.type === 'start';
+    extractBtn.disabled = !(state.phase === 'exploring' && atStart && state.bag.length > 0);
+    if (state.phase === 'exploring' && atStart && state.bag.length > 0) {
+      extractBtn.textContent = '🚪 撤离 (' + state.bag.length + ' 件)';
+    } else if (state.phase === 'exploring' && atStart) {
+      extractBtn.textContent = '🚪 回到入口 (无物资)';
+    } else {
+      extractBtn.textContent = '🚪 撤离 (需返回入口)';
+    }
+
+    const hasMedkit = state.bag.some(i => i.type === 'medkit');
+    healBtn.disabled = !(state.phase === 'exploring' && hasMedkit && state.hp < state.maxHp);
+  }
+
+  /* ===================== 地图生成 ===================== */
+  // 在画布内随机放置房间（不重叠太多）
+  function generateMap() {
+    state.rooms = [];
+    state.links = [];
+    state.visited = new Set();
+
+    const marginX = 70;
+    const marginY = 70;
+    const minGap = 118;
+
+    // 起点固定在左下区域
+    const startRoom = makeRoom('start', marginX + 30, H - marginY - 30);
+    state.rooms.push(startRoom);
+    state.currentRoom = startRoom;
+    state.visited.add(startRoom.id);
+
+    // 出口固定在右上区域
+    const exitRoom = makeRoom('exit', W - marginX - 30, marginY + 20);
+    state.rooms.push(exitRoom);
+
+    // 中间房间
+    const midTypes = ['tomb', 'treasure', 'supply', 'trap', 'guard', 'dark', 'tomb', 'treasure', 'dark', 'trap', 'supply', 'guard'];
+    let attempts = 0;
+    while (state.rooms.length < 10 && attempts < 300) {
+      attempts++;
+      const t = midTypes[randInt(0, midTypes.length - 1)];
+      const x = rand(marginX, W - marginX);
+      const y = rand(marginY, H - marginY);
+      let ok = true;
+      for (const r of state.rooms) {
+        if (dist(r, { x, y }) < minGap) { ok = false; break; }
+      }
+      if (ok) state.rooms.push(makeRoom(t, x, y));
+    }
+
+    // 每个房间连接最近的 2~3 个房间
+    for (const r of state.rooms) {
+      const others = state.rooms.filter(o => o !== r)
+        .sort((a, b) => dist(r, a) - dist(r, b));
+      const count = Math.min(others.length, randInt(2, 3));
+      for (let i = 0; i < count; i++) {
+        const o = others[i];
+        if (!hasLink(r.id, o.id)) {
+          state.links.push({ a: r.id, b: o.id });
+        }
+      }
+    }
+
+    // 确保出口至少连 2 条
+    const exitLinks = state.links.filter(l => l.a === exitRoom.id || l.b === exitRoom.id);
+    if (exitLinks.length < 2) {
+      const others = state.rooms.filter(o => o !== exitRoom)
+        .sort((a, b) => dist(exitRoom, a) - dist(exitRoom, b));
+      for (let i = 0; i < 2; i++) {
+        if (others[i] && !hasLink(exitRoom.id, others[i].id)) {
+          state.links.push({ a: exitRoom.id, b: others[i].id });
+        }
+      }
+    }
+
+    addLog('🏛️ 你潜入了金字塔。点击相邻的房间进行探索。', 'highlight');
+    addLog('🎯 目标：搜刮物资，然后返回入口撤离。风险越高越危险。', '');
+  }
+
+  let roomIdCounter = 0;
+  function makeRoom(type, x, y) {
+    const def = ROOM_TYPES[type];
+    return {
+      id: ++roomIdCounter,
+      type,
+      name: def.name,
+      icon: def.icon,
+      color: def.color,
+      desc: def.desc,
+      x, y,
+      radius: 26,
+      looted: false,
+      loot: def.loot.slice(),
+      pulse: Math.random() * Math.PI * 2
+    };
+  }
+
+  function hasLink(aId, bId) {
+    return state.links.some(l =>
+      (l.a === aId && l.b === bId) || (l.a === bId && l.b === aId)
+    );
+  }
+
+  function getLinkedRooms(room) {
+    return state.links
+      .filter(l => l.a === room.id || l.b === room.id)
+      .map(l => state.rooms.find(r => r.id === (l.a === room.id ? l.b : l.a)))
+      .filter(Boolean);
+  }
+
+  function getRoomById(id) {
+    return state.rooms.find(r => r.id === id);
+  }
+
+  /* ===================== 探索逻辑 ===================== */
+  function enterRoom(room) {
+    if (state.phase !== 'exploring') return;
+    if (room === state.currentRoom) {
+      addLog('你已经在这个房间了。', '');
+      return;
+    }
+    if (!getLinkedRooms(state.currentRoom).includes(room)) {
+      addLog('这个房间太远了，只能进入相邻的房间。', 'warn');
+      return;
+    }
+
+    state.currentRoom = room;
+    state.visited.add(room.id);
+    state.risk = clamp(state.risk + randInt(4, 9), 0, 100);
+
+    // 移动时的粒子
+    addParticles(room.x, room.y, '#ffd966', 10, 90);
+
+    if (!room.looted) {
+      room.looted = true;
+      searchRoom(room);
+    } else {
+      addLog('🔎 ' + room.name + ' 已经被搜过了。', '');
+    }
+
+    // 风险事件
+    if (state.risk >= 60 && Math.random() < 0.35) {
+      triggerRiskEvent(room);
+    }
+
+    updateHUD();
+  }
+
+  function searchRoom(room) {
+    const def = ROOM_TYPES[room.type];
+    addLog('🚪 进入【' + room.name + '】：' + room.desc, 'highlight');
+
+    if (room.loot.length === 0) {
+      addLog('这里没有可搜刮的物资。', '');
+      return;
+    }
+
+    // 搜刮
+    const found = [];
+    for (const lootType of room.loot) {
+      if (Math.random() < 0.75) {
+        const item = ITEMS[lootType];
+        if (!item) continue;
+        found.push({ type: lootType, ...item });
+      }
+    }
+
+    if (found.length === 0) {
+      addLog('翻找了一番，什么也没找到…', 'warn');
+      return;
+    }
+
+    for (const item of found) {
+      state.bag.push(item);
+      if (item.type === 'gold') {
+        state.gold += item.value;
+        addFloatText(room.x, room.y - 30, '+' + item.value + ' 🪙', '#ffd966');
+      } else if (item.type === 'relic') {
+        addFloatText(room.x, room.y - 30, '获得 ' + item.name, '#c9a227');
+      } else if (item.type === 'medkit') {
+        addFloatText(room.x, room.y - 30, '获得 ' + item.name, '#7ee787');
+      }
+      addLog('📦 找到 ' + item.icon + ' ' + item.name + '（价值 ' + item.value + '）', 'good');
+    }
+
+    addParticles(room.x, room.y, '#ffd966', 16, 120);
+
+    // 风险增加
+    state.risk = clamp(state.risk + randInt(6, 14), 0, 100);
+
+    // 陷阱房特殊
+    if (room.type === 'trap' && Math.random() < 0.6) {
+      const dmg = randInt(8, 18);
+      state.hp -= dmg;
+      state.shake = 10;
+      addLog('💥 触发陷阱！受到 ' + dmg + ' 点伤害。', 'bad');
+      addFloatText(room.x, room.y - 50, '-' + dmg + ' HP', '#ff6b6b');
+      addParticles(room.x, room.y, '#ff6b6b', 20, 140);
+      if (state.hp <= 0) { state.hp = 0; die(); return; }
+    }
+
+    // 守卫房特殊：必定战斗
+    if (room.type === 'guard' && Math.random() < 0.75) {
+      fightGuard(room);
+      if (state.phase !== 'exploring') return;
+    }
+
+    updateHUD();
+  }
+
+  function fightGuard(room) {
+    addLog('🗿 石像守卫发现了你，战斗开始！', 'bad');
+    const hits = randInt(1, 3);
+    let totalDmg = 0;
+    for (let i = 0; i < hits; i++) {
+      if (Math.random() < 0.65) {
+        const dmg = randInt(6, 14);
+        totalDmg += dmg;
+        state.shake = Math.max(state.shake, 8);
+        addParticles(room.x, room.y, '#ff6b6b', 10, 120);
+      }
+    }
+    if (totalDmg > 0) {
+      state.hp -= totalDmg;
+      addFloatText(room.x, room.y - 50, '-' + totalDmg + ' HP', '#ff6b6b');
+      addLog('🗡️ 守卫攻击了 ' + hits + ' 次，你受到 ' + totalDmg + ' 点伤害。', 'bad');
+    } else {
+      addLog('🛡️ 你灵活地躲开了所有攻击！', 'good');
+    }
+    state.risk = clamp(state.risk + 8, 0, 100);
+    if (state.hp <= 0) { state.hp = 0; die(); return; }
+    updateHUD();
+  }
+
+  function triggerRiskEvent(room) {
+    const roll = Math.random();
+    if (roll < 0.4) {
+      addLog('⚠️ 远处传来脚步声，风险上升…', 'warn');
+      state.risk = clamp(state.risk + randInt(6, 12), 0, 100);
+    } else if (roll < 0.7) {
+      const dmg = randInt(4, 10);
+      state.hp -= dmg;
+      addLog('💨 暗箭袭来！受到 ' + dmg + ' 点伤害。', 'bad');
+      addFloatText(room.x, room.y - 40, '-' + dmg + ' HP', '#ff6b6b');
+      addParticles(room.x, room.y, '#ff6b6b', 12, 120);
+      if (state.hp <= 0) { state.hp = 0; die(); return; }
+    } else {
+      addLog('🌫️ 空气变得沉闷，你感觉不太对劲…', 'warn');
+      state.risk = clamp(state.risk + 4, 0, 100);
+    }
+    updateHUD();
+  }
+
+  function useMedkit() {
+    if (state.phase !== 'exploring') return;
+    const idx = state.bag.findIndex(i => i.type === 'medkit');
+    if (idx === -1) {
+      addLog('你没有医疗包。', 'warn');
+      return;
+    }
+    if (state.hp >= state.maxHp) {
+      addLog('生命值已满，不需要使用医疗包。', '');
+      return;
+    }
+    state.bag.splice(idx, 1);
+    const heal = 30;
+    state.hp = clamp(state.hp + heal, 0, state.maxHp);
+    addLog('💊 使用医疗包，恢复 ' + heal + ' 点生命。', 'good');
+    addFloatText(state.currentRoom.x, state.currentRoom.y - 30, '+' + heal + ' HP', '#7ee787');
+    addParticles(state.currentRoom.x, state.currentRoom.y, '#7ee787', 14, 100);
+    updateHUD();
+  }
+
+  function extract() {
+    if (state.phase !== 'exploring') return;
+    const atStart = state.currentRoom && state.currentRoom.type === 'start';
+    if (!atStart) {
+      addLog('❌ 必须回到入口才能撤离！', 'bad');
+      return;
+    }
+    if (state.bag.length === 0) {
+      addLog('你两手空空，没什么可撤离的。', 'warn');
+      return;
+    }
+
+    state.phase = 'result';
+    state.extracted = true;
+
+    // 结算
+    let totalValue = 0;
+    const summary = {};
+    for (const item of state.bag) {
+      totalValue += item.value;
+      summary[item.type] = (summary[item.type] || 0) + 1;
+      if (item.type === 'gold') state.stash.gold += item.value;
+      else if (item.type === 'relic') state.stash.relics += 1;
+      else if (item.type === 'medkit') state.stash.medkits += 1;
+    }
+    state.stash.runs++;
+    state.stash.bestLoot = Math.max(state.stash.bestLoot, totalValue);
+
+    showResult(true, totalValue, summary);
+    addLog('✅ 撤离成功！带出 ' + state.bag.length + ' 件物资，总价值 ' + totalValue + '。', 'good');
+  }
+
+  function die() {
+    state.phase = 'result';
+    state.died = true;
+    state.shake = 20;
+    addParticles(state.currentRoom.x, state.currentRoom.y, '#ff6b6b', 40, 180);
+    addLog('💀 你倒在了金字塔里…所有物资都丢失了。', 'bad');
+    showResult(false, 0, {});
+  }
+
+  function showResult(success, totalValue, summary) {
+    overlay.classList.remove('hidden');
+    if (success) {
+      overlayTitle.textContent = '🏆 撤离成功';
+      overlayTitle.className = 'win';
+      overlayDesc.textContent = '你带着战利品回到了地面。';
+    } else {
+      overlayTitle.textContent = '💀 探索失败';
+      overlayTitle.className = 'lose';
+      overlayDesc.textContent = '你没能活着离开金字塔…';
+    }
+
+    lootList.innerHTML = '';
+    if (success) {
+      for (const key in summary) {
+        const item = ITEMS[key];
+        if (!item) continue;
+        const el = document.createElement('div');
+        el.className = 'loot-item';
+        el.textContent = item.icon + ' ' + item.name + ' ×' + summary[key];
+        lootList.appendChild(el);
+      }
+    }
+
+    totalLoot.textContent = success ? '总价值：' + totalValue + ' 🪙' : '';
+
+    // 仓库信息
+    const stashInfo = document.createElement('p');
+    stashInfo.className = 'sub';
+    stashInfo.style.marginTop = '6px';
+    stashInfo.textContent =
+      '仓库：🪙 ' + state.stash.gold +
+      ' · 🏺 ' + state.stash.relics +
+      ' · 💊 ' + state.stash.medkits +
+      ' · 探索 ' + state.stash.runs + ' 次';
+    overlayDesc.appendChild(stashInfo);
+
+    updateHUD();
+  }
+
+  function restart() {
+    overlay.classList.add('hidden');
+    overlayDesc.textContent = '';
+    overlayTitle.className = '';
+    state.phase = 'exploring';
+    state.hp = state.maxHp;
+    state.risk = 0;
+    state.gold = 0;
+    state.bag = [];
+    state.extracted = false;
+    state.died = false;
+    state.shake = 0;
+    state.floatTexts = [];
+    state.particles = [];
+    state.logLines = [];
+    state.hoverRoom = null;
+    hoverTip.classList.remove('show');
+    generateMap();
+    updateHUD();
+    renderLog();
+  }
+
+  /* ===================== 绘制 ===================== */
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // 背景
+    const bgGrad = ctx.createRadialGradient(W / 2, H / 2, 80, W / 2, H / 2, W * 0.75);
+    bgGrad.addColorStop(0, '#1a1410');
+    bgGrad.addColorStop(1, '#0a0806');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // 地板纹理
+    ctx.strokeStyle = 'rgba(120, 90, 60, 0.08)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < W; x += 48) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, H);
+      ctx.stroke();
+    }
+    for (let y = 0; y < H; y += 48) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(W, y);
+      ctx.stroke();
+    }
+
+    // 屏幕震动
+    ctx.save();
+    if (state.shake > 0.5) {
+      ctx.translate((Math.random() - 0.5) * state.shake, (Math.random() - 0.5) * state.shake);
+    }
+
+    // 连线
+    drawLinks();
+
+    // 房间
+    for (const room of state.rooms) {
+      drawRoom(room);
+    }
+
+    // 当前房间高亮
+    if (state.currentRoom) {
+      drawCurrentRoomHighlight(state.currentRoom);
+    }
+
+    // 粒子
+    for (const p of state.particles) {
+      const alpha = clamp(p.life / p.maxLife, 0, 1);
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // 浮动文字
+    for (const f of state.floatTexts) {
+      const alpha = clamp(f.life / f.maxLife, 0, 1);
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = f.color;
+      ctx.font = 'bold 14px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(f.text, f.x, f.y);
+    }
+    ctx.globalAlpha = 1;
+
+    ctx.restore();
+
+    // 风险条
+    drawRiskBar();
+
+    // 提示
+    if (state.phase === 'exploring' && state.currentRoom) {
+      const linked = getLinkedRooms(state.currentRoom);
+      if (linked.length > 0) {
+        ctx.fillStyle = 'rgba(232, 220, 192, 0.5)';
+        ctx.font = '12px "Courier New", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('点击相邻房间进行探索', W / 2, H - 18);
+      }
+    }
+  }
+
+  function drawLinks() {
+    for (const link of state.links) {
+      const a = getRoomById(link.a);
+      const b = getRoomById(link.b);
+      if (!a || !b) continue;
+
+      const isConnected = state.currentRoom &&
+        (link.a === state.currentRoom.id || link.b === state.currentRoom.id);
+      const visited = state.visited.has(a.id) && state.visited.has(b.id);
+
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+
+      if (isConnected) {
+        ctx.strokeStyle = 'rgba(255, 217, 102, 0.55)';
+        ctx.lineWidth = 2.5;
+      } else if (visited) {
+        ctx.strokeStyle = 'rgba(120, 100, 70, 0.35)';
+        ctx.lineWidth = 1.5;
+      } else {
+        ctx.strokeStyle = 'rgba(120, 100, 70, 0.18)';
+        ctx.lineWidth = 1.2;
+      }
+      ctx.stroke();
+    }
+  }
+
+  function drawRoom(room) {
+    const isCurrent = state.currentRoom === room;
+    const isAdjacent = state.currentRoom && getLinkedRooms(state.currentRoom).includes(room);
+    const isVisited = state.visited.has(room.id);
+    const isHover = state.hoverRoom === room;
+
+    const pulse = Math.sin(state.animTime * 2 + room.pulse) * 0.5 + 0.5;
+    const baseR = room.radius;
+
+    // 房间光晕
+    if (isCurrent || isAdjacent) {
+      const glowR = baseR + 14 + pulse * 6;
+      const grad = ctx.createRadialGradient(room.x, room.y, baseR * 0.5, room.x, room.y, glowR);
+      grad.addColorStop(0, isCurrent ? 'rgba(255, 217, 102, 0.25)' : 'rgba(255, 217, 102, 0.12)');
+      grad.addColorStop(1, 'rgba(255, 217, 102, 0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(room.x, room.y, glowR, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // 房间主体
+    ctx.beginPath();
+    ctx.arc(room.x, room.y, baseR, 0, Math.PI * 2);
+
+    if (isCurrent) {
+      ctx.fillStyle = '#2a2016';
+      ctx.fill();
+      ctx.strokeStyle = '#ffd966';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    } else if (isAdjacent) {
+      ctx.fillStyle = isVisited ? '#2a2016' : '#1a1410';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 217, 102, ' + (0.5 + pulse * 0.3) + ')';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    } else {
+      ctx.fillStyle = '#1a1410';
+      ctx.fill();
+      ctx.strokeStyle = isVisited ? 'rgba(120, 100, 70, 0.5)' : 'rgba(120, 100, 70, 0.22)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+
+    // 已搜刮标记
+    if (room.looted && room.type !== 'start' && room.type !== 'exit') {
+      ctx.beginPath();
+      ctx.arc(room.x + baseR * 0.65, room.y - baseR * 0.65, 5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(126, 231, 135, 0.8)';
+      ctx.fill();
+    }
+
+    // 图标
+    ctx.font = Math.round(baseR * 0.9) + 'px "Segoe UI Emoji", "Apple Color Emoji", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.globalAlpha = isVisited || isAdjacent || isCurrent ? 1 : 0.4;
+    ctx.fillText(room.icon, room.x, room.y + 1);
+    ctx.globalAlpha = 1;
+
+    // 悬停放大
+    if (isHover && (isAdjacent || isCurrent)) {
+      ctx.beginPath();
+      ctx.arc(room.x, room.y, baseR + 4, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255, 217, 102, 0.8)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  }
+
+  function drawCurrentRoomHighlight(room) {
+    const pulse = Math.sin(state.animTime * 3) * 0.5 + 0.5;
+    ctx.beginPath();
+    ctx.arc(room.x, room.y, room.radius + 8 + pulse * 4, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255, 217, 102, ' + (0.3 + pulse * 0.3) + ')';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 6]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  function drawRiskBar() {
+    const barW = 180;
+    const barH = 8;
+    const x = W - barW - 20;
+    const y = 20;
+
+    ctx.fillStyle = 'rgba(20, 16, 12, 0.8)';
+    ctx.beginPath();
+    ctx.roundRect(x, y, barW, barH, 4);
+    ctx.fill();
+
+    const ratio = state.risk / 100;
+    let color = '#7ee787';
+    if (ratio > 0.4) color = '#ffd966';
+    if (ratio > 0.7) color = '#ff9f43';
+    if (ratio > 0.9) color = '#ff6b6b';
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect(x, y, barW * ratio, barH, 4);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(232, 220, 192, 0.7)';
+    ctx.font = '11px "Courier New", monospace';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('风险 ' + Math.round(state.risk) + '%', x + barW, y - 4);
+  }
+
+  /* ===================== 交互 ===================== */
+  function canvasPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY
+    };
+  }
+
+  function roomAt(x, y) {
+    for (const room of state.rooms) {
+      if (dist(room, { x, y }) <= room.radius + 8) return room;
+    }
+    return null;
+  }
+
+  function onMove(e) {
+    if (state.phase !== 'exploring') return;
+    const pos = canvasPos(e);
+    const room = roomAt(pos.x, pos.y);
+    state.hoverRoom = room;
+
+    if (room) {
+      const isAdjacent = state.currentRoom && getLinkedRooms(state.currentRoom).includes(room);
+      const isCurrent = state.currentRoom === room;
+      if (isAdjacent || isCurrent) {
+        hoverTip.querySelector('.name').textContent = room.icon + ' ' + room.name;
+        let desc = room.desc;
+        if (room.looted) desc = '已搜刮 · ' + room.desc;
+        hoverTip.querySelector('.desc').textContent = desc;
+
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = rect.width / canvas.width;
+        const scaleY = rect.height / canvas.height;
+        let tipX = pos.x * scaleX + 16;
+        let tipY = pos.y * scaleY + 12;
+        const tipW = hoverTip.offsetWidth || 160;
+        if (tipX + tipW > rect.width - 8) tipX = pos.x * scaleX - tipW - 16;
+        if (tipY + 60 > rect.height - 8) tipY = pos.y * scaleY - 60;
+        hoverTip.style.left = tipX + 'px';
+        hoverTip.style.top = tipY + 'px';
+        hoverTip.classList.add('show');
+      } else {
+        hoverTip.classList.remove('show');
+      }
+    } else {
+      hoverTip.classList.remove('show');
+    }
+  }
+
+  function onClick(e) {
+    if (state.phase !== 'exploring') return;
+    const pos = canvasPos(e);
+    const room = roomAt(pos.x, pos.y);
+    if (!room) return;
+    enterRoom(room);
+  }
+
+  canvas.addEventListener('mousemove', onMove);
+  canvas.addEventListener('mouseleave', () => {
+    state.hoverRoom = null;
+    hoverTip.classList.remove('show');
+  });
+  canvas.addEventListener('click', onClick);
+  canvas.addEventListener('touchstart', function (e) {
+    e.preventDefault();
+    onMove(e);
+    onClick(e);
+  }, { passive: false });
+  canvas.addEventListener('touchmove', function (e) {
+    e.preventDefault();
+    onMove(e);
+  }, { passive: false });
+  canvas.addEventListener('touchend', function (e) {
+    e.preventDefault();
+    hoverTip.classList.remove('show');
+  }, { passive: false });
+
+  extractBtn.addEventListener('click', extract);
+  healBtn.addEventListener('click', useMedkit);
+  overlayBtn.addEventListener('click', restart);
+
+  /* ===================== 主循环 ===================== */
+  let lastTime = performance.now();
+  function loop(now) {
+    const dt = Math.min((now - lastTime) / 1000, 0.05);
+    lastTime = now;
+
+    state.animTime += dt;
+
+    // 粒子更新
+    for (let i = state.particles.length - 1; i >= 0; i--) {
+      const p = state.particles[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vx *= 0.95;
+      p.vy *= 0.95;
+      p.life -= dt;
+      if (p.life <= 0) state.particles.splice(i, 1);
+    }
+
+    // 浮动文字
+    for (let i = state.floatTexts.length - 1; i >= 0; i--) {
+      const f = state.floatTexts[i];
+      f.y -= 30 * dt;
+      f.life -= dt;
+      if (f.life <= 0) state.floatTexts.splice(i, 1);
+    }
+    if (state.shake > 0) state.shake *= 0.9;
+
+    draw();
+    requestAnimationFrame(loop);
+  }
+  generateMap();
+  state.phase = 'exploring';
+  updateHUD();
+  renderLog();
+  addLog('💡 提示：点击与当前房间相连的发光房间进行探索。', '');
+  addLog('💊 医疗包可以在背包中，点击底部按钮使用。', '');
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>
