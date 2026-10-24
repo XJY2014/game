@@ -18,6 +18,47 @@
     padding: 16px;
     overflow: hidden;
   }
+
+  /* ========== 返回按钮 ========== */
+  .back-btn {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 100;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px 9px 13px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: #e9f0f8;
+    text-decoration: none;
+    background: rgba(255, 255, 255, .09);
+    border: 1px solid rgba(255, 255, 255, .18);
+    border-radius: 999px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .35);
+    cursor: pointer;
+    transition: transform .2s ease, background .2s ease,
+                border-color .2s ease, box-shadow .2s ease;
+  }
+  .back-btn .arrow {
+    font-size: 17px;
+    line-height: 1;
+    transition: transform .2s ease;
+  }
+  .back-btn:hover {
+    background: rgba(255, 255, 255, .2);
+    border-color: rgba(255, 255, 255, .32);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .45);
+  }
+  .back-btn:hover .arrow { transform: translateX(-3px); }
+  .back-btn:active { transform: scale(.96); }
+  .back-btn:focus-visible { outline: 3px solid #ffd86b; outline-offset: 3px; }
+
   .game-wrap {
     position: relative;
     border-radius: 18px;
@@ -178,16 +219,29 @@
     font-family: inherit;
     font-size: 11px;
   }
+
   @media (max-width: 520px) {
-    .hud { font-size: 12px; gap: 6px; padding: 8px 10px; }
+    .back-btn { top: 10px; left: 10px; padding: 8px 13px 8px 10px; font-size: 13px; }
+    .hud { font-size: 12px; gap: 6px; padding: 8px 10px; padding-left: 128px; }
     .hud .pill { padding: 4px 8px; }
     .tower-btn { width: 70px; }
     .tower-btn .icon { font-size: 22px; }
     .tower-btn .name { font-size: 11px; }
   }
+  @media (max-width: 380px) {
+    .hud { padding-left: 10px; }
+    .back-btn .label { display: none; }
+    .back-btn { padding: 9px 11px; }
+  }
 </style>
 </head>
 <body>
+
+<!-- 返回游戏库 -->
+<a class="back-btn" href="index.html" title="返回游戏库" aria-label="返回游戏库">
+  <span class="arrow" aria-hidden="true">←</span>
+  <span class="label">返回游戏库</span>
+</a>
 
 <div class="game-wrap">
   <canvas id="game" width="900" height="600"></canvas>
@@ -233,24 +287,21 @@
   const W = canvas.width;
   const H = canvas.height;
 
-  const TILE = 60;                 // 格子大小
-  const COLS = W / TILE;           // 15
-  const ROWS = H / TILE;           // 10
+  const TILE = 60;
+  const COLS = W / TILE;
+  const ROWS = H / TILE;
 
-  // 路径（格子坐标），敌人沿此路线行走
   const PATH_TILES = [
     { x: -1, y: 2 }, { x: 2, y: 2 }, { x: 2, y: 6 }, { x: 5, y: 6 },
     { x: 5, y: 1 }, { x: 9, y: 1 }, { x: 9, y: 5 }, { x: 12, y: 5 },
     { x: 12, y: 8 }, { x: 15, y: 8 }
   ];
 
-  // 转成像素路径点（格子中心）
   const PATH = PATH_TILES.map(p => ({
     x: p.x * TILE + TILE / 2,
     y: p.y * TILE + TILE / 2
   }));
 
-  // 标记哪些格子是路径（不可建塔）
   const pathSet = new Set();
   for (let i = 0; i < PATH_TILES.length - 1; i++) {
     const a = PATH_TILES[i], b = PATH_TILES[i + 1];
@@ -312,7 +363,6 @@
       const list = [];
       const baseCount = 6 + Math.floor(i * 1.4);
       if (i % 5 === 0) {
-        // Boss 波
         list.push({ type: 'boss', delay: 0.4 });
         for (let k = 0; k < 4 + Math.floor(i / 4); k++) {
           list.push({ type: 'normal', delay: 0.35 });
@@ -325,7 +375,6 @@
           list.push({ type, delay: 0.5 - Math.min(0.25, i * 0.012) });
         }
       }
-      // 难度缩放
       const hpScale = 1 + (i - 1) * 0.16;
       const spdScale = 1 + (i - 1) * 0.02;
       waves.push({ list, hpScale, spdScale, bonus: 30 + i * 6 });
@@ -528,7 +577,6 @@
     state.time += dt;
     state.pathPulse = (state.pathPulse + dt * 2) % 1;
 
-    /* 波次生成 */
     if (state.waveActive) {
       if (state.spawnQueue.length > 0) {
         state.spawnTimer += dt;
@@ -555,7 +603,6 @@
       }
     }
 
-    /* 敌人更新 */
     for (let i = state.enemies.length - 1; i >= 0; i--) {
       const e = state.enemies[i];
       if (e.slowTimer > 0) {
@@ -585,7 +632,6 @@
       if (e.hitFlash > 0) e.hitFlash -= dt;
     }
 
-    /* 塔攻击 */
     for (const t of state.towers) {
       t.cooldown -= dt;
       if (t.cooldown <= 0) {
@@ -597,7 +643,6 @@
       }
     }
 
-    /* 子弹更新 */
     for (let i = state.bullets.length - 1; i >= 0; i--) {
       const b = state.bullets[i];
       if (b.target && b.target.hp > 0) {
@@ -633,7 +678,6 @@
       }
     }
 
-    /* 粒子 */
     for (let i = state.particles.length - 1; i >= 0; i--) {
       const p = state.particles[i];
       p.x += p.vx * dt;
@@ -644,7 +688,6 @@
       if (p.life <= 0) state.particles.splice(i, 1);
     }
 
-    /* 浮动文字 */
     for (let i = state.floatTexts.length - 1; i >= 0; i--) {
       const f = state.floatTexts[i];
       f.y -= 30 * dt;
@@ -655,7 +698,6 @@
     updateHUD();
   }
 
-  /* ✅ 简化后的目标选择：优先选择走得最远的敌人 */
   function findTarget(tower) {
     let best = null;
     const range = tower.stats.range;
@@ -1206,9 +1248,9 @@
         x: tx * TILE + TILE / 2,
         y: ty * TILE + TILE / 2,
         type: state.selectedType,
-        baseDef: def,            // ✅ 完整定义
+        baseDef: def,
         level: 0,
-        stats: def.levels[0],    // ✅ 当前等级数值
+        stats: def.levels[0],
         cooldown: 0,
         totalCost: def.cost,
         color: def.color,
@@ -1280,8 +1322,6 @@
       '你成功守住了所有 ' + state.maxWave + ' 波进攻！剩余生命 ' + state.life;
     document.getElementById('overlay').classList.remove('hidden');
   }
-
-  /* ===================== 主循环 ===================== */
   let lastTime = performance.now();
   function loop(now) {
     let dt = (now - lastTime) / 1000;
